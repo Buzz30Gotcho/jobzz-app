@@ -1,0 +1,538 @@
+// Jobzz — schéma de données complet (cf. CLAUDE.md §6).
+// Toutes les tables ont id (UUID), createdAt, updatedAt.
+// Dates en UTC ; les règles métier (week-ends, heures calmes) sont calculées en Europe/Paris.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─────────────────────────────── Comptes & sécurité ───────────────────────────────
+
+enum Role {
+  user
+  admin
+  support
+}
+
+enum Plan {
+  free
+  premium
+}
+
+model User {
+  id                        String    @id @default(uuid())
+  email                     String    @unique
+  passwordHash              String
+  role                      Role      @default(user)
+  plan                      Plan      @default(free)
+  premiumUntil              DateTime?
+  stripeCustomerId          String?
+  emailVerifiedAt           DateTime?
+  offerMailEnabled          Boolean   @default(true)
+  lastOfferMailAt           DateTime?
+  lastActiveAt              DateTime?
+  disabledAt                DateTime?
+  firstSearchAt             DateTime?
+  startChecklistDismissedAt DateTime?
+  createdAt                 DateTime  @default(now())
+  updatedAt                 DateTime  @updatedAt
+
+  profile             Profile?
+  refreshTokens       RefreshToken[]
+  emailTokens         EmailToken[]
+  applications        Application[]
+  automations         Automation[]
+  automationMatches   AutomationMatch[]
+  offerInteractions   OfferInteraction[]
+  offerViews          OfferView[]
+  offerDigests        OfferDigest[]
+  usageCounters       UsageCounter[]
+  subscriptionPeriods SubscriptionPeriod[]
+  jobOutcomes         JobOutcome[]
+  cvDocument          CvDocument?
+  cvAnalyses          CvAnalysis[]
+  cvOfferComparisons  CvOfferComparison[]
+  tickets             Ticket[]
+  ticketMessages      TicketMessage[]
+
+  @@index([lastActiveAt])
+  @@index([plan])
+}
+
+enum SubscriptionOffer {
+  monthly
+  pass_3_months
+  launch
+}
+
+model SubscriptionPeriod {
+  id                    String            @id @default(uuid())
+  userId                String
+  user                  User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  offer                 SubscriptionOffer
+  stripeSubscriptionId  String?
+  stripePaymentIntentId String?
+  status                String
+  startedAt             DateTime
+  endedAt               DateTime?
+  createdAt             DateTime          @default(now())
+  updatedAt             DateTime          @updatedAt
+
+  @@index([userId])
+  @@index([offer])
+}
+
+model StripeEvent {
+  id            String   @id @default(uuid())
+  stripeEventId String   @unique
+  type          String
+  processedAt   DateTime @default(now())
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model JobOutcome {
+  id           String    @id @default(uuid())
+  userId       String
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  contractType String
+  companyName  String?
+  helpfulness  String?
+  comment      String?
+  foundAt      DateTime  @default(now())
+  cancelledAt  DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@index([userId])
+}
+
+model RefreshToken {
+  id           String    @id @default(uuid())
+  userId       String
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash    String    @unique
+  expiresAt    DateTime
+  revokedAt    DateTime?
+  replacedById String?
+  userAgent    String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@index([userId])
+}
+
+enum EmailTokenType {
+  verify
+  reset
+}
+
+model EmailToken {
+  id        String         @id @default(uuid())
+  userId    String
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      EmailTokenType
+  tokenHash String         @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+
+  @@index([userId])
+  @@index([type])
+}
+
+// ─────────────────────────────── Profil ───────────────────────────────
+
+model Profile {
+  id               String   @id @default(uuid())
+  userId           String   @unique
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  firstName        String?
+  lastName         String?
+  phone            String?
+  linkedinUrl      String?
+  links            Json     @default("[]")
+  jobTargets       Json     @default("[]") // [{ label, romeCodes: [] }]
+  skills           Json     @default("[]")
+  sectors          Json     @default("[]")
+  locations        Json     @default("[]") // [{ communeCode, label, lat, lng, radiusKm }]
+  remotePreference String?
+  educationLevel   String?
+  educationField   String?
+  availableFrom    DateTime?
+  contractTypes    Json     @default("[]")
+  alternance       Json? // { rythme, dureeMois, ecole }
+  internship       Json? // { dureeMois, periode }
+  experienceLevel  String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+// ─────────────────────────────── Candidatures & relances ───────────────────────────────
+
+enum ApplicationSource {
+  offer
+  free_send
+}
+
+enum ApplicationStatus {
+  en_attente
+  relancee
+  reponse_recue
+}
+
+model Application {
+  id             String            @id @default(uuid())
+  userId         String
+  user           User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  companyName    String
+  companyKey     String
+  position       String
+  positionKey    String
+  contactEmail   String?
+  contactName    String?
+  appliedAt      DateTime
+  source         ApplicationSource
+  offerId        String?
+  offerUrl       String?
+  status         ApplicationStatus @default(en_attente)
+  responseType   String?
+  archivedAt     DateTime?
+  followUpCount  Int               @default(0)
+  lastFollowUpAt DateTime?
+  nextFollowUpAt DateTime?
+  respondedAt    DateTime?
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+
+  followUps FollowUp[]
+
+  @@index([userId])
+  @@index([nextFollowUpAt])
+  @@index([status])
+  @@index([userId, companyKey, positionKey])
+}
+
+model FollowUp {
+  id            String      @id @default(uuid())
+  applicationId String
+  application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  kind          String // relance, relance_encore, spontanee, remerciement, linkedin
+  channel       String // gmail, outlook, mailto, copy
+  subject       String?
+  body          String
+  aiGenerated   Boolean     @default(false)
+  sentAt        DateTime    @default(now())
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@index([applicationId])
+}
+
+// ─────────────────────────────── Offres ───────────────────────────────
+
+model Offer {
+  id              String    @id @default(uuid())
+  source          String
+  externalId      String
+  url             String
+  title           String
+  titleKey        String
+  companyName     String?
+  companyKey      String?
+  siret           String?
+  locationLabel   String?
+  communeCode     String?
+  lat             Float?
+  lng             Float?
+  contractType    String?
+  contractNature  String?
+  remote          String?
+  startDate       DateTime?
+  startFlexible   Boolean?
+  durationMonths  Int?
+  experienceRequired String?
+  salaryText      String?
+  skills          Json      @default("[]")
+  romeCodes       Json      @default("[]")
+  description     String
+  publishedAt     DateTime?
+  sourceUpdatedAt DateTime?
+  fetchedAt       DateTime  @default(now())
+  contentHash     String?
+  isDemo          Boolean   @default(false)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  enrichments      OfferEnrichment[]
+  interactions     OfferInteraction[]
+  views            OfferView[]
+  automationMatches AutomationMatch[]
+
+  @@unique([source, externalId])
+  @@index([companyKey])
+  @@index([publishedAt])
+  @@index([contractType])
+}
+
+model OfferEnrichment {
+  id         String   @id @default(uuid())
+  offerId    String
+  offer      Offer    @relation(fields: [offerId], references: [id], onDelete: Cascade)
+  version    Int
+  attributes Json
+  confidence Json
+  method     String // rules, ai
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([offerId])
+}
+
+model Company {
+  id            String   @id @default(uuid())
+  siren         String?
+  nameKey       String
+  name          String
+  headcountBand String?
+  category      String?
+  naf           String?
+  createdOn     DateTime?
+  labels        Json     @default("[]")
+  fetchedAt     DateTime @default(now())
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([nameKey])
+  @@index([siren])
+}
+
+enum OfferInteractionType {
+  hidden
+  applied
+}
+
+model OfferInteraction {
+  id        String               @id @default(uuid())
+  userId    String
+  user      User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  offerId   String
+  offer     Offer                @relation(fields: [offerId], references: [id], onDelete: Cascade)
+  type      OfferInteractionType
+  createdAt DateTime             @default(now())
+  updatedAt DateTime             @updatedAt
+
+  @@unique([userId, offerId, type])
+  @@index([userId])
+}
+
+model OfferView {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  offerId   String
+  offer     Offer    @relation(fields: [offerId], references: [id], onDelete: Cascade)
+  day       DateTime @db.Date
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, offerId, day])
+  @@index([userId, day])
+}
+
+// ─────────────────────────────── Automatisations ───────────────────────────────
+
+enum AutomationStatus {
+  active
+  en_pause
+  erreur
+}
+
+model Automation {
+  id                  String           @id @default(uuid())
+  userId              String
+  user                User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name                String
+  requestText         String?
+  criteria            Json
+  status              AutomationStatus @default(active)
+  lastRunAt           DateTime?
+  lastSuccessAt       DateTime?
+  consecutiveFailures Int              @default(0)
+  createdAt           DateTime         @default(now())
+  updatedAt           DateTime         @updatedAt
+
+  runs    AutomationRun[]
+  matches AutomationMatch[]
+
+  @@index([userId])
+  @@index([status])
+}
+
+model AutomationRun {
+  id           String    @id @default(uuid())
+  automationId String
+  automation   Automation @relation(fields: [automationId], references: [id], onDelete: Cascade)
+  startedAt    DateTime  @default(now())
+  finishedAt   DateTime?
+  status       String // success, partial, failed
+  funnel       Json?
+  errors       Json?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@index([automationId])
+}
+
+enum AutomationMatchStatus {
+  pending
+  sent
+  skipped
+}
+
+model AutomationMatch {
+  id           String                @id @default(uuid())
+  automationId String
+  automation   Automation            @relation(fields: [automationId], references: [id], onDelete: Cascade)
+  offerId      String
+  offer        Offer                 @relation(fields: [offerId], references: [id], onDelete: Cascade)
+  userId       String
+  user         User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  score        Int
+  explanation  String?
+  aiAdjustment Int?
+  aiReason     String?
+  status       AutomationMatchStatus @default(pending)
+  digestId     String?
+  digest       OfferDigest?          @relation(fields: [digestId], references: [id])
+  createdAt    DateTime              @default(now())
+  updatedAt    DateTime              @updatedAt
+
+  @@unique([automationId, offerId])
+  @@index([userId])
+  @@index([status])
+}
+
+model OfferDigest {
+  id         String   @id @default(uuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sentAt     DateTime @default(now())
+  offerCount Int
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  matches AutomationMatch[]
+
+  @@index([userId])
+}
+
+// ─────────────────────────────── Usage / droits ───────────────────────────────
+
+model UsageCounter {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  feature     String
+  periodStart DateTime
+  count       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([userId, feature, periodStart])
+  @@index([userId])
+}
+
+// ─────────────────────────────── CV ───────────────────────────────
+
+model CvDocument {
+  id            String   @id @default(uuid())
+  userId        String   @unique
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  extractedText String
+  fileHash      String
+  uploadedAt    DateTime @default(now())
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model CvAnalysis {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fileHash    String
+  rulesResult Json
+  aiResult    Json?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId])
+}
+
+model CvOfferComparison {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  offerId     String
+  fileHash    String
+  rulesResult Json
+  aiResult    Json?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([userId, offerId, fileHash])
+  @@index([userId])
+}
+
+// ─────────────────────────────── Support ───────────────────────────────
+
+model Ticket {
+  id        String          @id @default(uuid())
+  userId    String
+  user      User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      String // bug, question, idee
+  subject   String
+  status    String          @default("ouvert") // ouvert, en_cours, resolu
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+
+  messages TicketMessage[]
+
+  @@index([userId])
+  @@index([status])
+}
+
+model TicketMessage {
+  id             String   @id @default(uuid())
+  ticketId       String
+  ticket         Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  authorId       String
+  author         User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  body           String
+  attachmentPath String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([ticketId])
+}
+
+// ─────────────────────────────── IA ───────────────────────────────
+
+model AiCallLog {
+  id         String   @id @default(uuid())
+  feature    String
+  model      String
+  durationMs Int
+  success    Boolean
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([feature])
+  @@index([createdAt])
+}
