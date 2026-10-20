@@ -29,7 +29,7 @@ pnpm install
 
 # 4. Base de données (client Prisma + schéma + migrations)
 pnpm --filter @jobzz/api prisma:generate
-pnpm --filter @jobzz/api prisma migrate dev
+pnpm --filter @jobzz/api prisma:migrate
 
 # 5. Données de démonstration (facultatif)
 pnpm seed
