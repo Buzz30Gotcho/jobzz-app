@@ -223,8 +223,9 @@ export class AuthService {
       },
     });
 
+    const firstName = await this.users.firstName(user.id);
     return {
-      auth: { accessToken, user: this.users.toPublicUser(user) },
+      auth: { accessToken, user: this.users.toPublicUser(user, firstName) },
       refreshToken,
       refreshExpiresAt,
     };

@@ -16,6 +16,15 @@ export class UsersService {
     return this.prisma.user.findUnique({ where: { id } });
   }
 
+  /** Prénom facultatif du profil (pour personnaliser l'accueil). `null` si absent. */
+  async firstName(userId: string): Promise<string | null> {
+    const profile = await this.prisma.profile.findUnique({
+      where: { userId },
+      select: { firstName: true },
+    });
+    return profile?.firstName ?? null;
+  }
+
   /** Met à jour `lastActiveAt` au plus une fois par heure (cf. statistiques admin). */
   async touchActivity(userId: string): Promise<void> {
     const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
@@ -26,7 +35,7 @@ export class UsersService {
   }
 
   /** Représentation publique renvoyée au front (jamais de hash ni de secret). */
-  toPublicUser(user: User): PublicUser {
+  toPublicUser(user: User, firstName: string | null = null): PublicUser {
     return {
       id: user.id,
       email: user.email,
@@ -35,6 +44,7 @@ export class UsersService {
       premiumUntil: user.premiumUntil ? user.premiumUntil.toISOString() : null,
       emailVerified: user.emailVerifiedAt !== null,
       offerMailEnabled: user.offerMailEnabled,
+      firstName,
     };
   }
 }

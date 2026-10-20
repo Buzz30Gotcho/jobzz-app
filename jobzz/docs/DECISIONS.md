@@ -52,6 +52,17 @@ conformément au mode de travail du cahier des charges (CLAUDE.md §0).
 - **Test** : `packages/shared/src/normalize-email.test.ts` (dont le cas « Fred@Gmail.com » ↔
   « fred@gmail.com »).
 
+### Prénom facultatif et accueil personnalisé
+- **Décision** : un champ **facultatif « Ton prénom »** est ajouté en premier à l'écran 1 de
+  l'accueil guidé (pré-rempli s'il est connu, modifiable ensuite dans Profil → Mes infos). Le
+  tableau de bord affiche « Salut {prénom} », ou « Salut ! » s'il n'y en a pas. **Jamais de nom
+  d'utilisateur.**
+- **Mise en œuvre (socle)** : `PublicUser` porte désormais `firstName: string | null`, renseigné
+  depuis `Profile.firstName` dans `toPublicUser` (login, inscription, rafraîchissement, `/me`).
+  Le tableau de bord (`dashboard.component.ts`) calcule le message d'accueil à partir de ce
+  champ. L'écran de saisie du prénom lui-même viendra avec l'accueil guidé (étape 2).
+- **Raison** : personnalise l'expérience sans jamais imposer d'information ni introduire de pseudo.
+
 ### Fuseau horaire
 - **Décision** : dates en UTC en base ; conversions Europe/Paris via `Intl.DateTimeFormat`
   (sans dépendance externe), testées sur l'heure d'été et d'hiver.

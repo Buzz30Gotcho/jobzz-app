@@ -9,6 +9,8 @@ export interface PublicUser {
   premiumUntil: string | null;
   emailVerified: boolean;
   offerMailEnabled: boolean;
+  /** Prénom facultatif (profil) : sert à personnaliser l'accueil. `null` si non renseigné. */
+  firstName: string | null;
 }
 
 /** Réponse d'authentification : jeton d'accès court + utilisateur. Le refresh est en cookie httpOnly. */

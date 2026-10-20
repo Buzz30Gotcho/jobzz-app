@@ -134,7 +134,7 @@ Pas d'abonnement annuel (une recherche dure rarement un an) et pas d'essai gratu
 1. **Découverte** : page d'accueil publique (ce que fait Jobzz, en 3 blocs, avec un bouton « Créer mon compte »).
 2. **Inscription** : email + mot de passe → mail de confirmation (Mailpit en local). L'appli est utilisable avant confirmation, avec un bandeau discret. Aucun mail d'offres n'est envoyé tant que l'email n'est pas confirmé.
 3. **Accueil guidé (3 écrans, chacun passable)** :
-   1. « Qu'est-ce que tu cherches ? » : métier(s), type(s) de contrat, ville(s), date de début (les seuls champs **obligatoires** du profil) ;
+   1. « Qu'est-ce que tu cherches ? » : d'abord un champ **facultatif « Ton prénom »** (pré-rempli s'il est déjà connu, modifiable ensuite dans Profil → Mes infos ; sert à personnaliser l'accueil, jamais de nom d'utilisateur), puis métier(s), type(s) de contrat, ville(s), date de début (les seuls champs **obligatoires** du profil) ;
    2. compétences en un clic (suggestions selon le métier) ;
    3. « Et si les offres venaient à toi ? » : **un seul bouton** « Activer mon automatisation » (créée en 1 clic depuis ce qu'il vient de remplir ; en gratuit, c'est l'automatisation découverte, 1 mail par semaine), ou plus tard. Lien secondaire : régler ses alertes sur les autres sites.
 4. **Usage quotidien** : le tableau de bord dit quoi faire aujourd'hui (« 3 entreprises à buzzer », « 2 automatisations actives, dernier mail ce matin »).
@@ -462,7 +462,7 @@ Section **« Mon CV »** de la page **Profil** (pas de page séparée). L'analys
 
 ### 4.9 Tableau de bord
 
-- **En haut, une seule ligne d'accueil utile** (pas de grande bannière) : « Salut Frédéric » suivi de ce qu'il y a à faire aujourd'hui (« 3 entreprises à buzzer », « Ton automatisation t'a envoyé 4 offres ce matin », « Rien d'urgent aujourd'hui »).
+- **En haut, une seule ligne d'accueil utile** (pas de grande bannière) : « Salut {prénom} » (le prénom facultatif du profil), ou simplement « Salut ! » s'il n'y en a pas — **jamais de nom d'utilisateur** —, suivi de ce qu'il y a à faire aujourd'hui (« 3 entreprises à buzzer », « Ton automatisation t'a envoyé 4 offres ce matin », « Rien d'urgent aujourd'hui »).
 - **Carte « Bien démarrer »** (nouveaux utilisateurs) : une petite liste qui se coche au fur et à mesure, avec une barre de progression verte : Profil rempli, Première recherche d'offres, Automatisation activée, Première candidature notée, CV déposé. Chaque ligne non cochée est un lien direct vers l'action. Quand tout est coché : un petit « buzz » (le « zz » vibre, message « Tu es prêt, à toi de jouer ») puis la carte disparaît définitivement. Elle peut aussi être fermée à la main (« Masquer »). États calculés à partir des données existantes, sauf la première recherche (`User.firstSearchAt`) et la fermeture (`User.startChecklistDismissedAt`).
 - **Chiffres d'activité** (cartes avec une icône lucide et un chiffre en JetBrains Mono : candidatures, relances envoyées, réponses, entretiens) affichés **seulement quand il y a de l'activité** ; jamais une rangée de « 0 » pour un nouvel utilisateur (la carte « Bien démarrer » prend la place). Une seule couleur d'accent (vert) : pas une couleur différente par carte.
 

@@ -139,9 +139,11 @@ export class AuthController {
         premiumUntil: null,
         emailVerified: false,
         offerMailEnabled: true,
+        firstName: null,
       };
     }
-    return this.users.toPublicUser(user);
+    const firstName = await this.users.firstName(user.id);
+    return this.users.toPublicUser(user, firstName);
   }
 
   /** Pose le cookie de rafraîchissement et renvoie la réponse d'authentification. */

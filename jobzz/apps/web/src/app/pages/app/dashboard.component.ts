@@ -13,7 +13,7 @@ import { AuthService } from '../../core/auth/auth.service';
   template: `
     <div class="mx-auto max-w-4xl">
       <h1 class="text-2xl font-semibold">
-        Salut{{ prenom() }} <span aria-hidden="true">👋</span>
+        {{ greeting() }} <span aria-hidden="true">👋</span>
       </h1>
       <p class="mt-2 text-text-secondary">
         Ton espace Jobzz est prêt. Les écrans « Relances », « Offres » et « Profil » se remplissent
@@ -49,8 +49,12 @@ import { AuthService } from '../../core/auth/auth.service';
 export class DashboardComponent {
   readonly auth = inject(AuthService);
 
-  prenom(): string {
-    // Le prénom viendra du profil (étape 2) ; pour l'instant on reste sobre.
-    return '';
+  /**
+   * « Salut {prénom} » si le prénom (facultatif) est connu, sinon « Salut ! ».
+   * Le prénom viendra du profil (étape 2) ; jamais de nom d'utilisateur (CLAUDE.md §4.9).
+   */
+  greeting(): string {
+    const firstName = this.auth.user()?.firstName?.trim();
+    return firstName ? `Salut ${firstName}` : 'Salut !';
   }
 }
