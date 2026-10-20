@@ -135,7 +135,11 @@ export class AuthService {
   }
 
   /** Rotation du jeton de rafraîchissement : l'ancien est révoqué, un nouveau est émis. */
-  async refresh(presentedToken: string, userAgent?: string): Promise<IssuedTokens> {
+  async refresh(presentedToken: string | undefined, userAgent?: string): Promise<IssuedTokens> {
+    // Pas de cookie (visiteur non connecté) → pas de session, réponse propre (401).
+    if (!presentedToken) {
+      throw new UnauthorizedException('Aucune session active.');
+    }
     const record = await this.prisma.refreshToken.findUnique({
       where: { tokenHash: hashToken(presentedToken) },
       include: { user: true },
