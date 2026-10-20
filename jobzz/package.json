@@ -14,6 +14,7 @@
     "typecheck": "pnpm -r typecheck",
     "test": "pnpm -r test",
     "seed": "pnpm --filter @jobzz/api seed",
+    "exercice": "vitest run",
     "create-admin": "pnpm --filter @jobzz/api create-admin",
     "ai:pull": "pnpm --filter @jobzz/api ai:pull",
     "format": "prettier --write \"**/*.{ts,html,css,scss,json,md}\"",
@@ -21,6 +22,7 @@
   },
   "devDependencies": {
     "prettier": "^3.4.2",
-    "typescript": "^5.7.3"
+    "typescript": "^5.7.3",
+    "vitest": "^2.1.8"
   }
 }

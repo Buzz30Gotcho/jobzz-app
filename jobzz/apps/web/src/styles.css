@@ -1,0 +1,92 @@
+/* Polices auto-hébergées (Fontsource) — 2 graisses par police (CLAUDE.md §8, §11). */
+@import '@fontsource/space-grotesk/600.css';
+@import '@fontsource/space-grotesk/700.css';
+@import '@fontsource/inter/400.css';
+@import '@fontsource/inter/500.css';
+@import '@fontsource/jetbrains-mono/500.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ───────────────────────── Design system Jobzz (thème sombre v1) ───────────────────────── */
+:root {
+  --jz-bg: #0b0d0c;
+  --jz-surface: #141816;
+  --jz-surface-raised: #1c211e;
+  --jz-border: #2a302c;
+  --jz-text: #f2f5f3;
+  --jz-text-secondary: #a3ada7;
+  --jz-text-muted: #6b756f;
+  --jz-accent: #3be38b;
+  --jz-accent-hover: #62eda3;
+  --jz-accent-bg: #0f3d26;
+  --jz-accent-ink: #0b0d0c;
+  --jz-danger: #f2555a;
+  --jz-warning: #f5b841;
+  --jz-focus: var(--jz-accent);
+}
+
+/* Thème admin : noir et blanc. Aucun vert ; seules les couleurs de sens restent. */
+.theme-admin {
+  --jz-accent: #f2f5f3;
+  --jz-accent-hover: #ffffff;
+  --jz-accent-bg: #2a2e2c;
+  --jz-accent-ink: #0b0d0c;
+  --jz-focus: #ffffff;
+}
+
+@layer base {
+  html,
+  body {
+    @apply h-full;
+  }
+  body {
+    @apply bg-bg text-text font-sans antialiased;
+  }
+  h1,
+  h2,
+  h3 {
+    @apply font-display;
+  }
+  /* Focus visible : anneau vert (blanc en admin). */
+  :focus-visible {
+    outline: 2px solid var(--jz-focus);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+}
+
+@layer components {
+  .jz-btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-field px-4 py-2.5 font-medium transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  .jz-btn-primary {
+    @apply jz-btn bg-accent text-accent-ink hover:bg-accent-hover;
+  }
+  .jz-btn-ghost {
+    @apply jz-btn border border-border text-text hover:bg-surface-raised;
+  }
+  .jz-input {
+    @apply w-full rounded-field border border-border bg-surface px-3 py-2.5 text-text placeholder:text-text-muted focus:border-accent;
+  }
+  .jz-label {
+    @apply mb-1.5 block text-sm font-medium text-text-secondary;
+  }
+  .jz-card {
+    @apply rounded-card border border-border bg-surface p-6;
+  }
+  .jz-field-error {
+    @apply mt-1 text-sm text-danger;
+  }
+}
+
+/* Respecte prefers-reduced-motion (CLAUDE.md §11). */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}

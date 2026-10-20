@@ -1,0 +1,70 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  verify:
+    name: Lint · Types · Tests · Build
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: jobzz
+          POSTGRES_PASSWORD: jobzz
+          POSTGRES_DB: jobzz
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U jobzz -d jobzz"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      DATABASE_URL: postgresql://jobzz:jobzz@localhost:5432/jobzz?schema=public
+      JWT_SECRET: ci-jwt-secret-change-me-please-123456
+      REFRESH_TOKEN_SECRET: ci-refresh-secret-change-me-please-123456
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build shared package
+        run: pnpm --filter @jobzz/shared build
+
+      - name: Generate Prisma client
+        run: pnpm --filter @jobzz/api prisma:generate
+
+      - name: Apply database migrations
+        run: pnpm --filter @jobzz/api prisma:deploy
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Test
+        run: pnpm test
+
+      - name: Build
+        run: pnpm build
