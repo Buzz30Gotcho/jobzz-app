@@ -1,7 +1,12 @@
 import { z } from 'zod';
 import { AUTH } from '../config';
+import { normalizeEmail } from '../normalize-email';
 
-const email = z.string().trim().toLowerCase().email('Adresse email invalide').max(254);
+// Normalisation (trim + minuscules) AVANT la validation du format.
+const email = z
+  .string()
+  .transform(normalizeEmail)
+  .pipe(z.string().email('Adresse email invalide').max(254));
 
 const password = z
   .string()

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import type { User } from '@prisma/client';
-import type { PublicUser } from '@jobzz/shared';
+import { normalizeEmail, type PublicUser } from '@jobzz/shared';
 import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
@@ -8,7 +8,8 @@ export class UsersService {
   constructor(private readonly prisma: PrismaService) {}
 
   findByEmail(email: string) {
-    return this.prisma.user.findUnique({ where: { email: email.toLowerCase() } });
+    // Recherche toujours sur l'email normalisé (trim + minuscules).
+    return this.prisma.user.findUnique({ where: { email: normalizeEmail(email) } });
   }
 
   findById(id: string) {

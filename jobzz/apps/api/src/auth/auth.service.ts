@@ -8,6 +8,7 @@ import { JwtService } from '@nestjs/jwt';
 import * as argon2 from 'argon2';
 import {
   AUTH,
+  normalizeEmail,
   type AuthResponse,
   type LoginInput,
   type RegisterInput,
@@ -56,7 +57,7 @@ export class AuthService {
 
     const passwordHash = await argon2.hash(input.password, { type: argon2.argon2id });
     const user = await this.prisma.user.create({
-      data: { email: input.email.toLowerCase(), passwordHash },
+      data: { email: normalizeEmail(input.email), passwordHash },
     });
 
     await this.sendVerificationEmail(user);

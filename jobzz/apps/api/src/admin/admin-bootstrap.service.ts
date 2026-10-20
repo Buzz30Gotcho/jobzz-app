@@ -1,5 +1,6 @@
 import { Injectable, Logger, OnApplicationBootstrap } from '@nestjs/common';
 import * as argon2 from 'argon2';
+import { normalizeEmail } from '@jobzz/shared';
 import { PrismaService } from '../prisma/prisma.service';
 import { AppConfigService } from '../config/app-config.service';
 
@@ -24,7 +25,8 @@ export class AdminBootstrapService implements OnApplicationBootstrap {
       return;
     }
 
-    const existing = await this.prisma.user.findUnique({ where: { email: email.toLowerCase() } });
+    const normalized = normalizeEmail(email);
+    const existing = await this.prisma.user.findUnique({ where: { email: normalized } });
     if (existing) {
       if (existing.role !== 'admin') {
         await this.prisma.user.update({ where: { id: existing.id }, data: { role: 'admin' } });
@@ -36,7 +38,7 @@ export class AdminBootstrapService implements OnApplicationBootstrap {
     const passwordHash = await argon2.hash(password, { type: argon2.argon2id });
     await this.prisma.user.create({
       data: {
-        email: email.toLowerCase(),
+        email: normalized,
         passwordHash,
         role: 'admin',
         plan: 'premium',

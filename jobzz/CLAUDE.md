@@ -149,6 +149,7 @@ Pas d'abonnement annuel (une recherche dure rarement un an) et pas d'essai gratu
 
 ### 4.1 Comptes et sécurité
 
+- **Normalisation de l'email** : partout (inscription, connexion, mot de passe oublié, renvoi du lien de vérification), l'email est normalisé **avant la validation et avant tout enregistrement ou recherche en base** : espaces retirés au début et à la fin, puis tout en minuscules. Une seule fonction fait cette normalisation (`normalizeEmail`, dans `packages/shared`). Ainsi « Fred@Gmail.com » et « fred@gmail.com » correspondent au même compte (test dédié).
 - **Mots de passe** : argon2id. Minimum 10 caractères. Jamais stockés ni journalisés en clair.
 - **Sessions** : jeton d'accès JWT court (15 minutes) gardé en mémoire côté front, et jeton de rafraîchissement opaque (30 jours) dans un **cookie httpOnly, Secure, SameSite=Lax**, stocké haché en base, **renouvelé à chaque utilisation** (rotation) et révocable. Déconnexion = révocation.
 - **Vérification de l'email** : lien à usage unique, valable 48 h, renvoyable (maximum 3 fois par heure).

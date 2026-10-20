@@ -41,6 +41,17 @@ conformément au mode de travail du cahier des charges (CLAUDE.md §0).
   (testables sans base) ; le service NestJS y ajoute le comptage `UsageCounter`.
 - **Raison** : testabilité, réutilisation côté front possible plus tard, séparation nette.
 
+### Normalisation de l'email (une seule fonction partout)
+- **Décision** : une fonction unique `normalizeEmail` dans `@jobzz/shared` (trim + minuscules)
+  est appliquée partout : dans les schémas Zod (inscription, connexion, mot de passe oublié,
+  renvoi du lien de vérification), **avant** la validation du format, et dans l'API avant chaque
+  enregistrement ou recherche en base (`UsersService.findByEmail`, création à l'inscription,
+  création/recherche du compte admin).
+- **Raison** : éviter qu'une casse ou des espaces créent des comptes distincts ou empêchent de
+  retrouver un compte. « Fred@Gmail.com » et « fred@gmail.com » désignent le même compte.
+- **Test** : `packages/shared/src/normalize-email.test.ts` (dont le cas « Fred@Gmail.com » ↔
+  « fred@gmail.com »).
+
 ### Fuseau horaire
 - **Décision** : dates en UTC en base ; conversions Europe/Paris via `Intl.DateTimeFormat`
   (sans dépendance externe), testées sur l'heure d'été et d'hiver.
