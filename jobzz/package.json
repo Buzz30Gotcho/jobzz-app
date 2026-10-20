@@ -1,0 +1,26 @@
+{
+  "name": "jobzz",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Jobzz — trouve les offres de stage, d'alternance et de premier emploi qui te correspondent, et te rappelle de relancer.",
+  "packageManager": "pnpm@9.15.0",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "pnpm -r --parallel --filter \"./apps/*\" dev",
+    "build": "pnpm -r build",
+    "lint": "pnpm -r lint",
+    "typecheck": "pnpm -r typecheck",
+    "test": "pnpm -r test",
+    "seed": "pnpm --filter @jobzz/api seed",
+    "create-admin": "pnpm --filter @jobzz/api create-admin",
+    "ai:pull": "pnpm --filter @jobzz/api ai:pull",
+    "format": "prettier --write \"**/*.{ts,html,css,scss,json,md}\"",
+    "format:check": "prettier --check \"**/*.{ts,html,css,scss,json,md}\""
+  },
+  "devDependencies": {
+    "prettier": "^3.4.2",
+    "typescript": "^5.7.3"
+  }
+}

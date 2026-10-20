@@ -1,0 +1,39 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Env
+.env
+.env.*.local
+*.local
+
+# Build output
+dist/
+build/
+tmp/
+out-tsc/
+.angular/
+
+# Prisma
+apps/api/prisma/*.db
+
+# Coverage / tests
+coverage/
+.nyc_output/
+playwright-report/
+test-results/
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# Editor / OS
+.DS_Store
+.idea/
+.vscode/*
+!.vscode/extensions.json
+*.swp
+
+# Uploads (fichiers utilisateurs, hors dépôt)
+apps/api/storage/

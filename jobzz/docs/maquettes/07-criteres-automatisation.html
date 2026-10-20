@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Jobzz – Critères d'une automatisation</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&amp;family=Inter:wght@400;500&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0B0D0C}
+a{color:#3BE38B}a:hover{color:#62EDA3}
+input::placeholder{color:#A3ADA7}
+</style>
+</head>
+<body>
+<div style="min-height: 1700px; background: #0B0D0C; color: #F2F5F3; font-family: Inter, system-ui, sans-serif; font-size: 15px; box-sizing: border-box; padding: 40px 56px;">
+  <div style="max-width: 1100px; margin: 0 auto; display: flex; flex-wrap: wrap; gap: 32px; align-items: flex-start;">
+
+    <form aria-label="Critères de l'automatisation" style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 28px;">
+      <a href="#" style="font-size: 14px; color: #A3ADA7; text-decoration: none;">← Mes automatisations</a>
+      <header style="display: flex; flex-direction: column; gap: 6px;">
+        <h1 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 28px;">Tes critères</h1>
+        <p style="margin: 0; color: #A3ADA7;">Pré-remplis depuis ton profil. Change ce que tu veux, l'estimation se met à jour à droite.</p>
+      </header>
+
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <label for="name" style="font-size: 14px; font-weight: 500;">Nom de l'automatisation</label>
+        <input id="name" type="text" value="Alternance back-end Java · Montpellier" style="box-sizing: border-box; width: 100%; min-height: 44px; background: #141816; border: 1px solid #2A302C; border-radius: 8px; padding: 0 14px; color: #F2F5F3; font: inherit;">
+      </div>
+
+      <fieldset style="border: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px;">
+        <legend style="font-size: 14px; font-weight: 500; margin-bottom: 10px;">Métier</legend>
+        <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">
+          <span style="display: inline-flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 999px; background: #0F3D26; color: #3BE38B; font-size: 14px;">Développeur back-end <button type="button" aria-label="Retirer" style="background: none; border: none; color: #3BE38B; cursor: pointer; padding: 0; font: inherit;">×</button></span>
+          <input type="text" aria-label="Ajouter un métier" placeholder="+ Ajouter un métier" style="min-height: 38px; background: transparent; border: 1px dashed #2A302C; border-radius: 999px; padding: 0 14px; color: #F2F5F3; font: inherit; font-size: 14px;">
+        </div>
+      </fieldset>
+
+      <fieldset style="border: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px;">
+        <legend style="font-size: 14px; font-weight: 500; margin-bottom: 10px;">Contrat</legend>
+        <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+          <button type="button" aria-pressed="true" style="min-height: 40px; padding: 0 16px; border-radius: 999px; border: 1px solid #3BE38B; background: #0F3D26; color: #3BE38B; font: inherit; font-size: 14px; cursor: pointer;">Alternance</button>
+          <button type="button" aria-pressed="false" style="min-height: 40px; padding: 0 16px; border-radius: 999px; border: 1px solid #2A302C; background: transparent; color: #F2F5F3; font: inherit; font-size: 14px; cursor: pointer;">Stage</button>
+          <button type="button" aria-pressed="false" style="min-height: 40px; padding: 0 16px; border-radius: 999px; border: 1px solid #2A302C; background: transparent; color: #F2F5F3; font: inherit; font-size: 14px; cursor: pointer;">CDD</button>
+          <button type="button" aria-pressed="false" style="min-height: 40px; padding: 0 16px; border-radius: 999px; border: 1px solid #2A302C; background: transparent; color: #F2F5F3; font: inherit; font-size: 14px; cursor: pointer;">CDI</button>
+        </div>
+        <div style="display: flex; flex-wrap: wrap; gap: 12px; align-items: center;">
+          <label for="rythme" style="font-size: 14px; color: #A3ADA7;">Rythme souhaité</label>
+          <select id="rythme" style="min-height: 40px; background: #141816; border: 1px solid #2A302C; border-radius: 8px; padding: 0 12px; color: #F2F5F3; font: inherit; font-size: 14px;"><option>3 sem. entreprise / 1 sem. école</option></select>
+          <span style="font-size: 12px; padding: 2px 8px; border-radius: 999px; border: 1px solid #A3ADA7; color: #F2F5F3;">Approximatif</span>
+        </div>
+      </fieldset>
+
+      <fieldset style="border: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px;">
+        <legend style="font-size: 14px; font-weight: 500; margin-bottom: 10px;">Où</legend>
+        <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">
+          <span style="display: inline-flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 999px; background: #0F3D26; color: #3BE38B; font-size: 14px;">Montpellier · 30 km <button type="button" aria-label="Retirer" style="background: none; border: none; color: #3BE38B; cursor: pointer; padding: 0; font: inherit;">×</button></span>
+          <input type="text" aria-label="Ajouter une ville" placeholder="+ Ajouter une ville" style="min-height: 38px; background: transparent; border: 1px dashed #2A302C; border-radius: 999px; padding: 0 14px; color: #F2F5F3; font: inherit; font-size: 14px;">
+        </div>
+        <label style="display: flex; align-items: center; gap: 10px; font-size: 14px;"><input type="checkbox" checked style="width: 18px; height: 18px; accent-color: #3BE38B;"> J'accepte aussi le télétravail complet</label>
+      </fieldset>
+
+      <div style="display: flex; flex-wrap: wrap; gap: 12px; align-items: center;">
+        <label for="debut" style="font-size: 14px; font-weight: 500;">Je peux commencer</label>
+        <select id="debut" style="min-height: 40px; background: #141816; border: 1px solid #2A302C; border-radius: 8px; padding: 0 12px; color: #F2F5F3; font: inherit; font-size: 14px;"><option>en janvier 2027</option></select>
+        <span style="font-size: 13px; color: #A3ADA7;">Jobzz accepte aussi les débuts proches et les dates flexibles</span>
+      </div>
+
+      <fieldset style="border: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px;">
+        <legend style="font-size: 14px; font-weight: 500; margin-bottom: 4px;">Compétences et technos</legend>
+        <p style="margin: 0 0 6px; font-size: 13px; color: #A3ADA7;">Touche une compétence pour la rendre indispensable (★) : les offres sans elle seront moins bien classées.</p>
+        <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">
+          <button type="button" style="min-height: 38px; padding: 0 14px; border-radius: 999px; border: 1px solid #3BE38B; background: #3BE38B; color: #0B0D0C; font: inherit; font-size: 14px; font-weight: 500; cursor: pointer;">★ Java</button>
+          <button type="button" style="min-height: 38px; padding: 0 14px; border-radius: 999px; border: 1px solid #3BE38B; background: #0F3D26; color: #3BE38B; font: inherit; font-size: 14px; cursor: pointer;">Kotlin</button>
+          <button type="button" style="min-height: 38px; padding: 0 14px; border-radius: 999px; border: 1px solid #3BE38B; background: #0F3D26; color: #3BE38B; font: inherit; font-size: 14px; cursor: pointer;">Spring Boot</button>
+          <button type="button" style="min-height: 38px; padding: 0 14px; border-radius: 999px; border: 1px solid #3BE38B; background: #0F3D26; color: #3BE38B; font: inherit; font-size: 14px; cursor: pointer;">SQL</button>
+          <input type="text" aria-label="Ajouter une compétence" placeholder="+ Ajouter" style="min-height: 38px; width: 120px; background: transparent; border: 1px dashed #2A302C; border-radius: 999px; padding: 0 14px; color: #F2F5F3; font: inherit; font-size: 14px;">
+        </div>
+        <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center; font-size: 13px; color: #A3ADA7;">
+          Suggestions :
+          <button type="button" style="min-height: 32px; padding: 0 12px; border-radius: 999px; border: 1px solid #2A302C; background: transparent; color: #A3ADA7; font: inherit; font-size: 13px; cursor: pointer;">+ Docker</button>
+          <button type="button" style="min-height: 32px; padding: 0 12px; border-radius: 999px; border: 1px solid #2A302C; background: transparent; color: #A3ADA7; font: inherit; font-size: 13px; cursor: pointer;">+ API REST</button>
+          <button type="button" style="min-height: 32px; padding: 0 12px; border-radius: 999px; border: 1px solid #2A302C; background: transparent; color: #A3ADA7; font: inherit; font-size: 13px; cursor: pointer;">+ Git</button>
+        </div>
+      </fieldset>
+
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <label for="kw" style="font-size: 14px; font-weight: 500;">Mots à éviter dans les offres</label>
+        <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">
+          <span style="display: inline-flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 999px; border: 1px solid #2A302C; font-size: 14px;">PHP <button type="button" aria-label="Retirer" style="background: none; border: none; color: #A3ADA7; cursor: pointer; padding: 0; font: inherit;">×</button></span>
+          <input id="kw" type="text" placeholder="+ Ajouter un mot" style="min-height: 38px; background: transparent; border: 1px dashed #2A302C; border-radius: 999px; padding: 0 14px; color: #F2F5F3; font: inherit; font-size: 14px;">
+        </div>
+      </div>
+
+      <details open style="border-top: 1px solid #2A302C; padding-top: 20px;">
+        <summary style="cursor: pointer; font-weight: 500;">Plus de critères</summary>
+        <div style="display: flex; flex-direction: column; gap: 14px; padding-top: 16px;">
+          <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
+            <span style="flex: 0 0 160px; font-size: 14px; color: #A3ADA7;">Type d'entreprise</span>
+            <button type="button" style="min-height: 36px; padding: 0 14px; border-radius: 999px; border: 1px solid #3BE38B; background: #0F3D26; color: #3BE38B; font: inherit; font-size: 14px; cursor: pointer;">Startup</button>
+            <button type="button" style="min-height: 36px; padding: 0 14px; border-radius: 999px; border: 1px solid #3BE38B; background: #0F3D26; color: #3BE38B; font: inherit; font-size: 14px; cursor: pointer;">PME</button>
+            <button type="button" style="min-height: 36px; padding: 0 14px; border-radius: 999px; border: 1px solid #2A302C; background: transparent; color: #F2F5F3; font: inherit; font-size: 14px; cursor: pointer;">Grand groupe</button>
+            <span style="font-size: 12px; padding: 2px 8px; border-radius: 999px; border: 1px solid #A3ADA7; color: #F2F5F3;">Approximatif</span>
+          </div>
+          <label style="display: flex; align-items: center; gap: 10px; font-size: 14px;"><input type="checkbox" checked style="width: 18px; height: 18px; accent-color: #3BE38B;"> Exclure les ESN <span style="font-size: 12px; padding: 2px 8px; border-radius: 999px; border: 1px solid #A3ADA7; color: #F2F5F3;">Approximatif</span></label>
+          <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
+            <span style="flex: 0 0 160px; font-size: 14px; color: #A3ADA7;">Offres publiées depuis</span>
+            <select aria-label="Fraîcheur" style="min-height: 36px; background: #141816; border: 1px solid #2A302C; border-radius: 8px; padding: 0 12px; color: #F2F5F3; font: inherit; font-size: 14px;"><option>moins de 14 jours</option></select>
+          </div>
+          <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
+            <span style="flex: 0 0 160px; font-size: 14px; color: #A3ADA7;">Exigence</span>
+            <select aria-label="Score minimum" style="min-height: 36px; background: #141816; border: 1px solid #2A302C; border-radius: 8px; padding: 0 12px; color: #F2F5F3; font: inherit; font-size: 14px;"><option>Bonnes offres seulement (60 %)</option></select>
+          </div>
+          <a href="#" style="font-size: 14px;">Salaire minimum, secteurs, entreprises à exclure…</a>
+        </div>
+      </details>
+    </form>
+
+    <aside aria-labelledby="prev-title" style="flex: 1 1 300px; position: sticky; top: 24px; background: #141816; border: 1px solid #3BE38B; border-radius: 12px; padding: 24px; display: flex; flex-direction: column; gap: 16px;">
+      <h2 id="prev-title" style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-weight: 600; font-size: 14px; color: #A3ADA7; text-transform: uppercase; letter-spacing: 1px;">Prévision</h2>
+      <p style="margin: 0; font-size: 15px;">environ <span style="font-family: 'JetBrains Mono', monospace; font-weight: 500; font-size: 28px; color: #3BE38B;">3</span> nouvelles offres par semaine</p>
+      <p style="margin: 0; font-size: 13px; color: #A3ADA7; line-height: 1.5;">D'après les offres publiées ces 2 dernières semaines. Le nombre réel peut varier selon le marché.</p>
+      <button type="button" style="min-height: 48px; border-radius: 8px; border: none; background: #3BE38B; color: #0B0D0C; font: inherit; font-weight: 500; font-size: 16px; cursor: pointer;">Activer</button>
+      <span style="font-size: 13px; color: #A3ADA7;">Tu recevras les nouvelles offres par mail, dès qu'il y en a.</span>
+    </aside>
+  </div>
+</div>
+</body>
+</html>

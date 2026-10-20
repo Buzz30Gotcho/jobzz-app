@@ -1,0 +1,49 @@
+# Services locaux pour Jobzz.
+#   docker compose up -d                 → PostgreSQL + Mailpit
+#   docker compose --profile ai up -d    → + Ollama (IA locale)
+# Ollama installé directement sur la machine fonctionne aussi (ne pas lancer le profil `ai`).
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: jobzz-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: jobzz
+      POSTGRES_PASSWORD: jobzz
+      POSTGRES_DB: jobzz
+    ports:
+      - '5432:5432'
+    volumes:
+      - jobzz-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U jobzz -d jobzz']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: jobzz-mailpit
+    restart: unless-stopped
+    ports:
+      - '1025:1025' # SMTP
+      - '8025:8025' # interface web → http://localhost:8025
+    environment:
+      MP_MAX_MESSAGES: 500
+      MP_SMTP_AUTH_ACCEPT_ANY: 1
+      MP_SMTP_AUTH_ALLOW_INSECURE: 1
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: jobzz-ollama
+    restart: unless-stopped
+    profiles: ['ai']
+    ports:
+      - '11434:11434'
+    volumes:
+      - jobzz-ollama-data:/root/.ollama
+
+volumes:
+  jobzz-db-data:
+  jobzz-ollama-data:
