@@ -3,6 +3,35 @@
 Journal des décisions prises en autonomie (date, décision, raison, alternatives écartées),
 conformément au mode de travail du cahier des charges (CLAUDE.md §0).
 
+## 2026-10-21 — Étape 6 (automatisations) — passe 2 + correctif majeur
+
+### Bug corrigé : `@UsePipes` au niveau méthode validait aussi `@CurrentUser`/`@Param`
+- **Problème** : plusieurs contrôleurs utilisaient `@UsePipes(new ZodValidationPipe(schema))` au
+  niveau de la méthode. NestJS applique alors le pipe à **tous** les arguments, y compris
+  `@CurrentUser` (l'objet utilisateur) et `@Param` — pas seulement `@Body`. Résultat : toute route
+  POST/PUT avec `@CurrentUser` échouait en « Données invalides » (le pipe validait le mauvais
+  argument). Touchait profil, candidatures, offres (« J'ai postulé »), IA, automatisations.
+- **Correctif** : le pipe est désormais appliqué **au paramètre** `@Body(new ZodValidationPipe(...))`
+  (et `@Query(...)` déjà au niveau paramètre). Validé par un test de bout en bout (création
+  d'automatisation + envoi du mail).
+- **Leçon** : préférer les pipes au niveau paramètre ; les tests unitaires de service ne couvraient
+  pas la couche HTTP — d'où la découverte tardive lors du test manuel.
+
+### Exécution : pg-boss au démarrage, robuste
+- **Décision** : `QueueService` démarre pg-boss à l'amorçage, planifie `automations.tick` (toutes
+  les heures) et exécute `AutomationRunnerService.runAll()`. Si pg-boss ne démarre pas, l'app
+  fonctionne quand même (log d'avertissement) ; désactivé en test. Un endpoint `POST
+  /automations/run-mine` (forcé) permet de tester l'envoi immédiatement.
+- **pg-boss v9** (CommonJS, éprouvé) retenu plutôt que v10 (friction d'interop).
+
+### Mail des offres : HTML maison plutôt que MJML
+- **Décision** : le mail est construit par une fonction pure (`offer-digest.template.ts`) en HTML
+  à base de tableaux + inline styles (compatible Gmail/Outlook) + version texte + en-tête
+  `List-Unsubscribe`. **Divergence assumée vs §7** (qui prévoyait MJML) : MJML 5 ne rendait pas
+  correctement et tirait ~150 paquets ; le HTML maison est plus léger et sans dépendance lourde.
+- Cadence (`digest-schedule.ts`, testée) : Premium = dès qu'il y a des offres, ≥ 4 h, hors 22 h–7 h ;
+  gratuit = lundi 8 h. Désinscription par **jeton HMAC signé** (`unsubscribe-token.ts`, testé).
+
 ## 2026-10-21 — Étape 6 (automatisations) — passe 1
 
 ### Découpage de l'étape en deux passes

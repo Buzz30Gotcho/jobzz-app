@@ -191,7 +191,9 @@ const CONTRACT_WORDS: Record<string, string> = {
 };
 
 function toPublicAutomation(row: Automation): PublicAutomation {
-  const criteria = row.criteria as unknown as AutomationCriteria;
+  // Robuste aux critères d'un ancien format (seed) : on revalide en appliquant les défauts.
+  const parsed = automationCriteriaSchema.safeParse(row.criteria);
+  const criteria = parsed.success ? parsed.data : automationCriteriaSchema.parse({});
   return {
     id: row.id,
     name: row.name,

@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Post, Query, UsePipes } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, Query } from '@nestjs/common';
 import {
   createFromOfferSchema,
   freeSendSchema,
@@ -42,26 +42,26 @@ export class ApplicationsController {
   }
 
   @Post('from-offer')
-  @UsePipes(new ZodValidationPipe(createFromOfferSchema))
   createFromOffer(
     @CurrentUser() user: RequestUser,
-    @Body() body: CreateFromOfferInput,
+    @Body(new ZodValidationPipe(createFromOfferSchema)) body: CreateFromOfferInput,
   ): Promise<{ application: PublicApplication; duplicate: boolean }> {
     return this.applications.createFromOffer(user.id, body);
   }
 
   @Post('free-send')
-  @UsePipes(new ZodValidationPipe(freeSendSchema))
-  freeSend(@CurrentUser() user: RequestUser, @Body() body: FreeSendInput): Promise<PublicApplication> {
+  freeSend(
+    @CurrentUser() user: RequestUser,
+    @Body(new ZodValidationPipe(freeSendSchema)) body: FreeSendInput,
+  ): Promise<PublicApplication> {
     return this.applications.freeSend({ id: user.id, plan: user.plan, role: user.role }, body);
   }
 
   @Post(':id/follow-ups')
-  @UsePipes(new ZodValidationPipe(recordFollowUpSchema))
   recordFollowUp(
     @CurrentUser() user: RequestUser,
     @Param('id') id: string,
-    @Body() body: RecordFollowUpInput,
+    @Body(new ZodValidationPipe(recordFollowUpSchema)) body: RecordFollowUpInput,
   ): Promise<PublicApplication> {
     return this.applications.recordFollowUp(user.id, id, body);
   }
@@ -72,11 +72,10 @@ export class ApplicationsController {
   }
 
   @Post(':id/respond')
-  @UsePipes(new ZodValidationPipe(respondSchema))
   respond(
     @CurrentUser() user: RequestUser,
     @Param('id') id: string,
-    @Body() body: RespondInput,
+    @Body(new ZodValidationPipe(respondSchema)) body: RespondInput,
   ): Promise<PublicApplication> {
     return this.applications.respond(user.id, id, body.responseType);
   }

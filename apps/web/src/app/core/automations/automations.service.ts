@@ -52,4 +52,11 @@ export class AutomationsService {
     const params: Record<string, string> = automationId ? { automationId } : {};
     return firstValueFrom(this.http.get<AlertSuggestion[]>(`${API}/alert-helpers`, { params }));
   }
+
+  /** Lance maintenant mes automatisations (ignore la cadence) — pour tester le mail. */
+  runMine(): Promise<{ sent: boolean; reason?: string; candidates: number }> {
+    return firstValueFrom(
+      this.http.post<{ sent: boolean; reason?: string; candidates: number }>(`${API}/run-mine`, {}),
+    );
+  }
 }

@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Put, UsePipes } from '@nestjs/common';
+import { Body, Controller, Get, Put } from '@nestjs/common';
 import { profileUpdateSchema, type ProfileUpdateInput, type PublicProfile } from '@jobzz/shared';
 import { ZodValidationPipe } from '../common/zod-validation.pipe';
 import { CurrentUser } from '../auth/current-user.decorator';
@@ -16,10 +16,9 @@ export class ProfileController {
   }
 
   @Put()
-  @UsePipes(new ZodValidationPipe(profileUpdateSchema))
   update(
     @CurrentUser() user: RequestUser,
-    @Body() body: ProfileUpdateInput,
+    @Body(new ZodValidationPipe(profileUpdateSchema)) body: ProfileUpdateInput,
   ): Promise<PublicProfile> {
     return this.profile.update(user.id, body);
   }

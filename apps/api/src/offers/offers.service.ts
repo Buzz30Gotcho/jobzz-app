@@ -45,7 +45,7 @@ export class OffersService {
     const query = this.buildQuery(profile, input);
 
     const { offers: normalized, errors } = await this.sources.search(query);
-    const stored = await this.persist(normalized);
+    const stored = await this.persistOffers(normalized);
 
     // Offres déjà masquées ou postulées : jamais réaffichées.
     const interactions = await this.prisma.offerInteraction.findMany({
@@ -199,7 +199,7 @@ export class OffersService {
   }
 
   /** Upsert des offres (unicité source + externalId), renvoie l'id DB et la forme normalisée. */
-  private async persist(
+  async persistOffers(
     normalized: NormalizedOffer[],
   ): Promise<{ id: string; offer: NormalizedOffer }[]> {
     const out: { id: string; offer: NormalizedOffer }[] = [];

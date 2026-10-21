@@ -83,9 +83,10 @@ colonnes de filtre/tri.
 6. **Automatisations** — *passe 1 faite* : schéma de critères versionné + matrice de faisabilité,
    moteur déterministe (filtres → score → entonnoir, testé), aide aux alertes externes (Indeed,
    LinkedIn, WTTJ, HelloWork, APEC — par règles, testée), CRUD + droits (1 gratuit / 5 Premium),
-   aperçu/prévision, page « Mes automatisations » + formulaire + diagnostic. *Passe 2 à venir* :
-   assistant IA « décris ce que tu cherches », exécution pg-boss, mail des offres (MJML),
-   désinscription.
+   aperçu/prévision, page « Mes automatisations » + formulaire + diagnostic. *Passe 2 faite* :
+   exécution planifiée (pg-boss), **mail des offres** (gabarit HTML + texte, cadence Premium/gratuit),
+   **désinscription** en un clic (jeton signé), bouton « Recevoir le mail maintenant » pour tester.
+   *Reste (passe 3)* : assistant IA « décris ce que tu cherches ».
 7. CV.
 8. Paiement (mode test).
 9. Support, admin et données.

@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, UsePipes } from '@nestjs/common';
+import { Body, Controller, Get, Post } from '@nestjs/common';
 import { aiFreeMessageSchema, type AiFreeMessageInput, type GeneratedMessage } from '@jobzz/shared';
 import { ZodValidationPipe } from '../common/zod-validation.pipe';
 import { CurrentUser } from '../auth/current-user.decorator';
@@ -21,10 +21,9 @@ export class AiController {
 
   /** Rédige un message d'envoi libre (candidature spontanée, remerciement). */
   @Post('free-message')
-  @UsePipes(new ZodValidationPipe(aiFreeMessageSchema))
   freeMessage(
     @CurrentUser() user: RequestUser,
-    @Body() body: AiFreeMessageInput,
+    @Body(new ZodValidationPipe(aiFreeMessageSchema)) body: AiFreeMessageInput,
   ): Promise<GeneratedMessage> {
     return this.messages.generate(
       { id: user.id, plan: user.plan, role: user.role },

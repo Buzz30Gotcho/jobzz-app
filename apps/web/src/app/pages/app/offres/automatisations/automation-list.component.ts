@@ -22,10 +22,20 @@ import { OffresTabsComponent } from '../offres-tabs.component';
         <p class="text-sm text-text-secondary">
           {{ activeCount() }} active{{ activeCount() > 1 ? 's' : '' }}
         </p>
-        <a routerLink="/app/offres/automatisations/nouvelle" class="jz-btn-primary">
-          <lucide-icon name="plus" [size]="16" /> Nouvelle automatisation
-        </a>
+        <div class="flex items-center gap-2">
+          @if (automations().length > 0) {
+            <button type="button" class="jz-btn-ghost" [disabled]="running()" (click)="runNow()">
+              <lucide-icon name="mail" [size]="16" /> {{ running() ? 'Envoi…' : 'Recevoir le mail maintenant' }}
+            </button>
+          }
+          <a routerLink="/app/offres/automatisations/nouvelle" class="jz-btn-primary">
+            <lucide-icon name="plus" [size]="16" /> Nouvelle automatisation
+          </a>
+        </div>
       </div>
+      @if (runNote()) {
+        <p class="mt-3 rounded-field border border-border bg-surface-raised px-3 py-2 text-sm text-text-secondary">{{ runNote() }}</p>
+      }
 
       @if (loading()) {
         <div class="mt-6 h-28 animate-pulse rounded-card bg-surface-raised"></div>
@@ -125,6 +135,26 @@ export class AutomationListComponent implements OnInit {
   readonly funnels = signal<Record<string, AutomationPreview>>({});
   readonly loading = signal(true);
   readonly copied = signal<string | null>(null);
+  readonly running = signal(false);
+  readonly runNote = signal<string | null>(null);
+
+  async runNow(): Promise<void> {
+    if (this.running()) return;
+    this.running.set(true);
+    this.runNote.set(null);
+    try {
+      const r = await this.service.runMine();
+      this.runNote.set(
+        r.sent
+          ? `Mail envoyé (${r.candidates} offre(s)). Regarde ta boîte mail (Mailpit en local).`
+          : `Aucun mail envoyé : ${r.reason ?? 'rien à envoyer'} (offres trouvées : ${r.candidates}).`,
+      );
+    } catch {
+      this.runNote.set('Impossible de lancer les automatisations pour le moment.');
+    } finally {
+      this.running.set(false);
+    }
+  }
 
   activeCount(): number {
     return this.automations().filter((a) => a.status === 'active').length;

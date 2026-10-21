@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, Param, Post, Query, UsePipes } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, Param, Post, Query } from '@nestjs/common';
 import { z } from 'zod';
 import { searchOffersSchema, type SearchOffersInput, type SearchResult } from '@jobzz/shared';
 import { ZodValidationPipe } from '../common/zod-validation.pipe';
@@ -22,11 +22,10 @@ export class OffersController {
 
   @Post(':id/applied')
   @HttpCode(200)
-  @UsePipes(new ZodValidationPipe(appliedSchema))
   applied(
     @CurrentUser() user: RequestUser,
     @Param('id') id: string,
-    @Body() body: { contactEmail?: string },
+    @Body(new ZodValidationPipe(appliedSchema)) body: { contactEmail?: string },
   ): Promise<{ duplicate: boolean }> {
     return this.offers.markApplied(
       { id: user.id, plan: user.plan, role: user.role },

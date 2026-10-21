@@ -2,6 +2,45 @@
 
 Difficulté progressive. La réponse est cachée : déplie le bloc quand tu veux vérifier.
 
+## Étape 6 — Automatisations (passe 2)
+
+### 1. (repérage) Où décide-t-on d'envoyer (ou non) le mail des offres maintenant ?
+
+<details>
+<summary>Réponse</summary>
+
+Dans `apps/api/src/automations/digest-schedule.ts` (`shouldSendDigest`), fonction pure testée :
+Premium = dès qu'il y a de nouvelles offres, au moins 4 h entre deux mails, rien entre 22 h et 7 h
+(Paris) ; gratuit = le lundi à 8 h. Le moteur `automation-runner.service.ts` l'appelle (sauf en
+« forcé » via le bouton « Recevoir le mail maintenant »).
+
+</details>
+
+### 2. (pourquoi) Pourquoi une route POST avec `@CurrentUser` échouait-elle avant le correctif ?
+
+<details>
+<summary>Réponse</summary>
+
+Parce que `@UsePipes(ZodValidationPipe)` posé au niveau de la **méthode** s'applique à **tous** les
+arguments, pas seulement `@Body`. Il validait donc aussi l'objet `@CurrentUser` (qui n'a pas la
+forme du schéma du corps) → « Données invalides ». Le correctif : appliquer le pipe **au paramètre**
+`@Body(new ZodValidationPipe(schema))`. (Les tests unitaires de service ne passaient pas par la
+couche HTTP, d'où la découverte au test manuel.)
+
+</details>
+
+### 3. (technique) Comment le lien de désinscription en un clic est-il sécurisé sans session ?
+
+<details>
+<summary>Réponse</summary>
+
+Par un **jeton HMAC signé** (`unsubscribe-token.ts`) : `base64url(userId).HMAC_SHA256(userId, secret)`.
+Le mail contient `…/desinscription?token=…`. La route **publique** `POST /automations/unsubscribe`
+vérifie la signature (comparaison à temps constant) et coupe `offerMailEnabled` ; un jeton invalide
+renvoie le même 204 sans rien révéler. Pas besoin d'être connecté, et le compte reste intact.
+
+</details>
+
 ## Étape 6 — Automatisations (passe 1)
 
 ### 1. (repérage) Où sont décrites honnêtement les limites de chaque critère (fiable / approximatif / impossible) ?

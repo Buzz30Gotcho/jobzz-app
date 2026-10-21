@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, HttpCode, Param, Post, Put, Query, UsePipes } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, Param, Post, Put, Query } from '@nestjs/common';
 import { z } from 'zod';
 import {
   automationCriteriaSchema,
@@ -11,14 +11,23 @@ import {
 } from '@jobzz/shared';
 import { ZodValidationPipe } from '../common/zod-validation.pipe';
 import { CurrentUser } from '../auth/current-user.decorator';
+import { Public } from '../auth/public.decorator';
 import type { RequestUser } from '../auth/jwt-payload';
+import { AppConfigService } from '../config/app-config.service';
 import { AutomationsService } from './automations.service';
+import { AutomationRunnerService, type RunSummary } from './automation-runner.service';
+import { verifyUnsubscribeToken } from './unsubscribe-token';
 
 const statusSchema = z.object({ status: z.enum(['active', 'en_pause']) });
+const unsubscribeSchema = z.object({ token: z.string().trim().min(1).max(500) });
 
 @Controller('automations')
 export class AutomationsController {
-  constructor(private readonly automations: AutomationsService) {}
+  constructor(
+    private readonly automations: AutomationsService,
+    private readonly runner: AutomationRunnerService,
+    private readonly config: AppConfigService,
+  ) {}
 
   private subject(user: RequestUser) {
     return { id: user.id, plan: user.plan, role: user.role };
@@ -31,8 +40,9 @@ export class AutomationsController {
 
   @Post('preview')
   @HttpCode(200)
-  @UsePipes(new ZodValidationPipe(automationCriteriaSchema))
-  preview(@Body() criteria: AutomationCriteria): Promise<AutomationPreview> {
+  preview(
+    @Body(new ZodValidationPipe(automationCriteriaSchema)) criteria: AutomationCriteria,
+  ): Promise<AutomationPreview> {
     return this.automations.preview(criteria);
   }
 
@@ -44,9 +54,25 @@ export class AutomationsController {
     return this.automations.alertHelpers(user.id, automationId);
   }
 
+  @Post('run-mine')
+  @HttpCode(200)
+  runMine(@CurrentUser() user: RequestUser): Promise<RunSummary> {
+    return this.runner.runForUser(user.id, { force: true });
+  }
+
+  @Public()
+  @Post('unsubscribe')
+  @HttpCode(204)
+  async unsubscribe(@Body(new ZodValidationPipe(unsubscribeSchema)) body: { token: string }): Promise<void> {
+    const userId = verifyUnsubscribeToken(body.token, this.config.get('REFRESH_TOKEN_SECRET'));
+    if (userId) await this.runner.unsubscribe(userId);
+  }
+
   @Post()
-  @UsePipes(new ZodValidationPipe(automationInputSchema))
-  create(@CurrentUser() user: RequestUser, @Body() body: AutomationInput): Promise<PublicAutomation> {
+  create(
+    @CurrentUser() user: RequestUser,
+    @Body(new ZodValidationPipe(automationInputSchema)) body: AutomationInput,
+  ): Promise<PublicAutomation> {
     return this.automations.create(this.subject(user), body);
   }
 
@@ -56,22 +82,20 @@ export class AutomationsController {
   }
 
   @Put(':id')
-  @UsePipes(new ZodValidationPipe(automationInputSchema))
   update(
     @CurrentUser() user: RequestUser,
     @Param('id') id: string,
-    @Body() body: AutomationInput,
+    @Body(new ZodValidationPipe(automationInputSchema)) body: AutomationInput,
   ): Promise<PublicAutomation> {
     return this.automations.update(user.id, id, body);
   }
 
   @Post(':id/status')
   @HttpCode(200)
-  @UsePipes(new ZodValidationPipe(statusSchema))
   setStatus(
     @CurrentUser() user: RequestUser,
     @Param('id') id: string,
-    @Body() body: { status: 'active' | 'en_pause' },
+    @Body(new ZodValidationPipe(statusSchema)) body: { status: 'active' | 'en_pause' },
   ): Promise<PublicAutomation> {
     return this.automations.setStatus(this.subject(user), id, body.status);
   }
