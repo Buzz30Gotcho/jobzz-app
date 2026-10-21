@@ -3,6 +3,36 @@
 Journal des décisions prises en autonomie (date, décision, raison, alternatives écartées),
 conformément au mode de travail du cahier des charges (CLAUDE.md §0).
 
+## 2026-10-21 — Étape 6 (automatisations) — passe 1
+
+### Découpage de l'étape en deux passes
+- **Décision** : étape 6 scindée. **Passe 1** (faite) : fondations déterministes et testables —
+  schéma de critères (`schemas/automation.ts`, versionné), matrice de faisabilité
+  (`data/automation-capabilities.ts`), aide aux alertes externes (`alert-helpers.ts`), moteur
+  (`automation-engine.ts`), CRUD + aperçu + page de gestion. **Passe 2** (à venir) : assistant IA
+  de création, exécution planifiée (pg-boss), mail des offres (MJML), désinscription.
+- **Raison** : éviter un bloc monolithique risqué ; livrer un incrément fonctionnel et testé.
+
+### Critères obligatoires appliqués par le code, jamais par l'IA
+- **Décision** : `runAutomation` applique de façon déterministe métier, lieu/rayon, contrat,
+  fraîcheur, filtre junior, mots-clés (inclure/indispensables/exclure), compétences indispensables
+  et exclusion d'entreprise, puis score ≥ `scoreMin`, et renvoie l'entonnoir. L'IA (passe 2) ne fera
+  qu'ajuster le classement (±15), jamais inclure une offre qui viole un critère obligatoire.
+- **Raison** : CLAUDE.md §4.6 (honnêteté, déterminisme). Réutilise le score et le filtre junior
+  partagés (une seule source de vérité).
+
+### Limite d'automatisations actives via `entitlements.limit` (pas `consume`)
+- **Décision** : le nombre d'automatisations actives (1 gratuit / 5 Premium) est vérifié en comptant
+  les actives en base contre `entitlements.limit('active_automations')`, pas via `UsageCounter`
+  (qui est un compteur par période, inadapté à un décompte « vivant »).
+- **Raison** : sémantique correcte ; en local `PLAN_ENFORCEMENT=false` ⇒ limite `null` ⇒ illimité.
+
+### Aide aux alertes : liens et syntaxe isolés (à vérifier)
+- **Décision** : modèles d'URL et règles de syntaxe par site dans `alert-helpers.ts` (Indeed,
+  LinkedIn, WTTJ, HelloWork, APEC). Le **texte à copier est toujours affiché**, pour fonctionner
+  même si un lien casse. Génération par règles (pas d'IA), testée (chaque site).
+- **À vérifier** : exactitude des modèles d'URL de chaque site (notés ici, à confronter en ligne).
+
 ## 2026-10-21 — UX : thème clair par défaut et disposition
 
 ### Thème clair par défaut côté client (divergence assumée vs §11)

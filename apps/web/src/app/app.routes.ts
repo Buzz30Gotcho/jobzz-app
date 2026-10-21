@@ -103,8 +103,23 @@ export const routes: Routes = [
       {
         path: 'offres/automatisations',
         loadComponent: () =>
-          import('./pages/app/placeholder.component').then((m) => m.PlaceholderComponent),
-        data: { title: 'Mes automatisations', subtitle: 'Automatisations et aide aux alertes (étape 6).' },
+          import('./pages/app/offres/automatisations/automation-list.component').then(
+            (m) => m.AutomationListComponent,
+          ),
+      },
+      {
+        path: 'offres/automatisations/nouvelle',
+        loadComponent: () =>
+          import('./pages/app/offres/automatisations/automation-form.component').then(
+            (m) => m.AutomationFormComponent,
+          ),
+      },
+      {
+        path: 'offres/automatisations/:id',
+        loadComponent: () =>
+          import('./pages/app/offres/automatisations/automation-form.component').then(
+            (m) => m.AutomationFormComponent,
+          ),
       },
       {
         path: 'bienvenue',

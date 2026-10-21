@@ -2,6 +2,44 @@
 
 Difficulté progressive. La réponse est cachée : déplie le bloc quand tu veux vérifier.
 
+## Étape 6 — Automatisations (passe 1)
+
+### 1. (repérage) Où sont décrites honnêtement les limites de chaque critère (fiable / approximatif / impossible) ?
+
+<details>
+<summary>Réponse</summary>
+
+Dans `packages/shared/src/data/automation-capabilities.ts` (`AUTOMATION_CAPABILITIES`). Cette matrice
+sert au code (comment appliquer un critère) et à l'UI/IA (ce qu'on peut promettre). Ex. télétravail
+= « approximatif », ambiance = « impossible », métier/lieu/contrat = « fiable ».
+
+</details>
+
+### 2. (pourquoi) Pourquoi l'IA ne décide-t-elle jamais seule d'inclure une offre ?
+
+<details>
+<summary>Réponse</summary>
+
+Pour rester **honnête et déterministe** (CLAUDE.md §4.6). Les critères obligatoires sont appliqués
+par le code (`runAutomation` dans `automation-engine.ts`) : métier, lieu, contrat, fraîcheur, filtre
+junior, mots-clés, compétences indispensables. L'IA (passe 2) ne fera qu'**ajuster le classement**
+(±15 points) des meilleures offres — elle ne peut pas repêcher une offre qui viole un critère
+obligatoire. Ainsi le résultat est reproductible et explicable (entonnoir).
+
+</details>
+
+### 3. (technique) Comment l'aide aux alertes reste-t-elle robuste si un site change son URL ?
+
+<details>
+<summary>Réponse</summary>
+
+Les modèles d'URL et la syntaxe sont **isolés** dans `packages/shared/src/alert-helpers.ts`
+(`ALERT_SITES`), et le **texte de recherche à copier est toujours affiché** à côté du bouton
+« Ouvrir » : même si un lien casse, l'utilisateur peut coller la recherche à la main. La génération
+(`buildAlertQuery`) est une fonction pure testée (guillemets/OR/- selon le site). Exercice 06.
+
+</details>
+
 ## Étape 5 — Offres
 
 ### 1. (repérage) Où est calculé le score de compatibilité d'une offre ?

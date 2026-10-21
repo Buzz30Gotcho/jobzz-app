@@ -80,7 +80,12 @@ colonnes de filtre/tri.
    gracieux, Adzuna désactivé), normalisation + dédoublonnage, enrichissement par règles, score
    déterministe et filtre junior (fonctions pures testées), limite d'offres vues/jour (gratuit),
    page Offres (Rechercher), « J'ai postulé » relié aux relances, « Masquer », gestion des pannes.
-6. Automatisations.
+6. **Automatisations** — *passe 1 faite* : schéma de critères versionné + matrice de faisabilité,
+   moteur déterministe (filtres → score → entonnoir, testé), aide aux alertes externes (Indeed,
+   LinkedIn, WTTJ, HelloWork, APEC — par règles, testée), CRUD + droits (1 gratuit / 5 Premium),
+   aperçu/prévision, page « Mes automatisations » + formulaire + diagnostic. *Passe 2 à venir* :
+   assistant IA « décris ce que tu cherches », exécution pg-boss, mail des offres (MJML),
+   désinscription.
 7. CV.
 8. Paiement (mode test).
 9. Support, admin et données.

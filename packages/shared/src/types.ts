@@ -17,6 +17,7 @@ import type {
   ProfileLocation,
 } from './schemas/profile';
 import type { ProfileCompletion } from './profile-completion';
+import type { AutomationCriteria } from './schemas/automation';
 
 /** Représentation publique d'un utilisateur, renvoyée au front (jamais de hash ni de secret). */
 export interface PublicUser {
@@ -97,6 +98,42 @@ export interface PublicApplication {
   nextFollowUpAt: string | null;
   respondedAt: string | null;
   followUps: PublicFollowUp[];
+}
+
+/** Une automatisation renvoyée au front. */
+export interface PublicAutomation {
+  id: string;
+  name: string;
+  requestText: string | null;
+  criteria: AutomationCriteria;
+  status: 'active' | 'en_pause' | 'erreur';
+  summary: string;
+  lastRunAt: string | null;
+  /** Vrai nombre d'offres envoyées sur 28 jours glissants (0 tant que l'exécution n'est pas branchée). */
+  sentLast28Days: number;
+  createdAt: string;
+}
+
+/** Exemple d'offre affiché dans l'aperçu d'une automatisation (jamais la liste complète). */
+export interface AutomationExample {
+  title: string;
+  companyName: string | null;
+  locationLabel: string | null;
+  contractType: ContractType | null;
+  score: number;
+}
+
+/** Aperçu / prévision d'une automatisation (CLAUDE.md §4.6). */
+export interface AutomationPreview {
+  previsionParSemaine: number;
+  funnel: {
+    trouvees: number;
+    apresMetierLieu: number;
+    apresContratDateJunior: number;
+    auDessusDuScore: number;
+  };
+  examples: AutomationExample[];
+  notice: string | null;
 }
 
 /** Résumé du tableau de bord (CLAUDE.md §4.9). Ne contient que ce qui existe à cette étape. */

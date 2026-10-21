@@ -14,6 +14,7 @@ import { ApplicationsModule } from './applications/applications.module';
 import { AiModule } from './ai/ai.module';
 import { SourcesModule } from './sources/sources.module';
 import { OffersModule } from './offers/offers.module';
+import { AutomationsModule } from './automations/automations.module';
 import { AdminModule } from './admin/admin.module';
 import { HealthModule } from './health/health.module';
 import { JwtAuthGuard } from './auth/jwt-auth.guard';
@@ -45,6 +46,7 @@ import { RolesGuard } from './auth/roles.guard';
     AiModule,
     SourcesModule,
     OffersModule,
+    AutomationsModule,
     AdminModule,
     HealthModule,
   ],

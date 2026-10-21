@@ -34,6 +34,8 @@ import {
   RefreshCw,
   Sun,
   Moon,
+  ChevronDown,
+  ChevronRight,
 } from 'lucide-angular';
 import { routes } from './app.routes';
 import { authInterceptor } from './core/auth/auth.interceptor';
@@ -72,6 +74,8 @@ export const appConfig: ApplicationConfig = {
         RefreshCw,
         Sun,
         Moon,
+        ChevronDown,
+        ChevronRight,
       }),
     ),
     // Applique le thème (clair/sombre) avant le premier rendu.
