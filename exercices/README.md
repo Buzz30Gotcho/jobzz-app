@@ -25,3 +25,4 @@ mêmes tests. La vraie version tourne déjà dans l'app ; ici, tu t'entraînes s
 | 02 | suggest-skills | Suggestions de compétences par domaine (insensible aux accents, dédoublonnage) | `packages/shared/src/data/skill-suggestions.ts` |
 | 03 | render-template | Remplacement des variables {xxx} d'un modèle de message | `packages/shared/src/data/message-templates.ts` |
 | 04 | wrap-untrusted | Isoler les données non fiables dans un prompt IA (balises `<donnees>`) | `apps/api/src/ai/prompts/message.ts` |
+| 05 | junior-filter | Décider si une offre est gardée pour un profil junior (titre) | `packages/shared/src/junior-filter.ts` |

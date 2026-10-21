@@ -30,6 +30,7 @@ import {
   ArrowLeft,
   Copy,
   PenLine,
+  ExternalLink,
 } from 'lucide-angular';
 import { routes } from './app.routes';
 import { authInterceptor } from './core/auth/auth.interceptor';
@@ -63,6 +64,7 @@ export const appConfig: ApplicationConfig = {
         ArrowLeft,
         Copy,
         PenLine,
+        ExternalLink,
       }),
     ),
     // Tente de restaurer la session (cookie de rafraîchissement) au démarrage.

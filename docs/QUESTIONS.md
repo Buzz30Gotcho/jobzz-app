@@ -2,6 +2,46 @@
 
 Difficulté progressive. La réponse est cachée : déplie le bloc quand tu veux vérifier.
 
+## Étape 5 — Offres
+
+### 1. (repérage) Où est calculé le score de compatibilité d'une offre ?
+
+<details>
+<summary>Réponse</summary>
+
+Dans `packages/shared/src/offer-score.ts` (`computeOfferScore`), fonction pure utilisant les poids
+de `SCORING` (`config.ts`) : compétences (50), métier (20), lieu (10), date (10), rythme/durée/
+expérience (10). Elle renvoie le score borné, le libellé (`scoreLabel`) et l'explication. Appelée
+par `OffersService.search`. Tests : `offer-score.test.ts`.
+
+</details>
+
+### 2. (pourquoi) Pourquoi flouter les offres au-delà de la limite plutôt que les cacher ?
+
+<details>
+<summary>Réponse</summary>
+
+Par honnêteté (CLAUDE.md §2, §4.5) : on annonce le **vrai nombre** d'offres encore pertinentes
+(« 13 autres te correspondent ») et on montre leur existence (rang + score floutés), au lieu de
+laisser croire qu'il n'y a plus rien. `applyDailyViewLimit` (`offer-view-limit.ts`) calcule ce qui
+est lisible selon le quota du jour ; `OfferView` garantit qu'une offre ne compte qu'une fois par
+jour. En local (`PLAN_ENFORCEMENT=false`), la limite vaut `null` : rien n'est flouté.
+
+</details>
+
+### 3. (technique) Comment une panne de France Travail est-elle gérée sans casser la recherche ?
+
+<details>
+<summary>Réponse</summary>
+
+Chaque connecteur attrape ses erreurs et renvoie `{ offers: [], error }` (jamais d'exception qui
+remonte). `SourcesService.search` agrège les sources actives avec `Promise.all`, collecte les
+`error` et dédoublonne le reste : une source en panne donne une **exécution partielle**, les autres
+continuent. Le message d'erreur est renvoyé dans `SearchResult.notice` et affiché honnêtement. On
+n'invente jamais d'offre. Voir `france-travail.source.ts` et `sources.service.ts`.
+
+</details>
+
 ## Étape 4 — Couche IA
 
 ### 1. (repérage) Où décide-t-on de retomber sur un modèle quand l'IA ne répond pas ?

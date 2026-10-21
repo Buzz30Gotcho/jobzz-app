@@ -130,6 +130,38 @@ export const SCORING = {
   },
 } as const;
 
+/**
+ * Filtre junior (CLAUDE.md §4.5) : écarte les offres trop expérimentées. Mots et seuils ici
+ * (fonction pure testée). Les niveaux `debutant`/`moins_1_an` écartent en plus « confirmé » et
+ * « expérimenté » ; `plus_3_ans` désactive le filtre.
+ */
+export const JUNIOR_FILTER = {
+  /** Mots du titre qui écartent à tous les niveaux (sauf exceptions ci-dessous). */
+  excludingTitleWords: ['senior', 'lead', 'head of', 'directeur', 'directrice', 'principal'],
+  /** Mots du titre écartants seulement pour débutant / moins de 1 an. */
+  excludingTitleWordsStrict: ['confirmé', 'confirme', 'expérimenté', 'experimente'],
+  /** Mots du titre qui empêchent TOUJOURS l'exclusion (postes clairement juniors). */
+  neverExcludeTitleWords: [
+    'alternance',
+    'apprenti',
+    'apprentissage',
+    'stage',
+    'stagiaire',
+    'junior',
+    'débutant',
+    'debutant',
+    'jeune diplômé',
+    'jeune diplome',
+  ],
+  /** Seuil d'années d'expérience exigée accepté selon le niveau du profil. */
+  maxYearsByLevel: {
+    debutant: 2,
+    moins_1_an: 2,
+    '1_a_3_ans': 3,
+    plus_3_ans: null, // filtre désactivé
+  },
+} as const;
+
 /** Fichiers (CV, pièces jointes). */
 export const FILES = {
   cvMaxBytes: 5 * 1024 * 1024, // 5 Mo

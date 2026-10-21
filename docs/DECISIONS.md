@@ -3,6 +3,31 @@
 Journal des décisions prises en autonomie (date, décision, raison, alternatives écartées),
 conformément au mode de travail du cahier des charges (CLAUDE.md §0).
 
+## 2026-10-21 — Étape 5 (offres)
+
+### Logique métier des offres en fonctions pures partagées
+- **Décision** : score (`offer-score.ts`), filtre junior (`junior-filter.ts`), familles de
+  compétences (`data/skill-families.ts`), distance (`geo-distance.ts`) et limite d'offres vues
+  (`offer-view-limit.ts`) vivent dans `@jobzz/shared`, testés unitairement (poids/seuils dans la
+  config). Le back les orchestre, le front peut réutiliser les libellés de score.
+- **Raison** : CLAUDE.md §4.5/§4.7/§13 (fonctions pures testées, une seule source de vérité).
+
+### Recherche manuelle : interrogation des sources à chaud, puis persistance
+- **Décision** : `OffersService.search` interroge les sources actives, **upsert** les offres
+  (unicité `source + externalId`), applique les filtres obligatoires + junior + compétences, score,
+  tri, puis la **limite du jour** via `OfferView` (une offre comptée une fois/jour) et
+  `entitlements.limit('offers_viewed')`. Pas de pagination serveur en v1 (cap à 50 résultats).
+- **Raison** : simplicité ; la limite ne mord qu'avec `PLAN_ENFORCEMENT=true` (sinon `limit = null`,
+  rien n'est flouté). Offres floutées = rang + score seulement, jamais cachées en silence.
+
+### Connecteurs live isolés et gracieux
+- **Décision** : `franceTravail` et `laBonneAlternance` ont leurs URLs/paramètres **isolés** dans
+  leur fichier (notés « à vérifier »), ne s'activent qu'en `JOB_SOURCES_MODE=live` avec clés, et une
+  panne renvoie une **exécution partielle** (message honnête, jamais d'offre inventée). Adzuna reste
+  désactivé. Seuls les **mappeurs** (`mapFranceTravailOffers`, `mapLbaOffers`) sont testés (réponses
+  enregistrées, aucun appel réseau).
+- **Raison** : CLAUDE.md §4.4 ; en local, mode démo (40+ offres fictives, badge « Fictive »).
+
 ## 2026-10-21 — Étape 4 (couche IA)
 
 ### Abstraction `AiProvider` + Ollama, injectée par jeton

@@ -98,8 +98,13 @@ export const routes: Routes = [
       {
         path: 'offres',
         loadComponent: () =>
+          import('./pages/app/offres/recherche.component').then((m) => m.RechercheComponent),
+      },
+      {
+        path: 'offres/automatisations',
+        loadComponent: () =>
           import('./pages/app/placeholder.component').then((m) => m.PlaceholderComponent),
-        data: { title: 'Offres', subtitle: 'Recherche et automatisations (étapes 5–6).' },
+        data: { title: 'Mes automatisations', subtitle: 'Automatisations et aide aux alertes (étape 6).' },
       },
       {
         path: 'bienvenue',

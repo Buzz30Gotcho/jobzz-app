@@ -76,7 +76,10 @@ colonnes de filtre/tri.
    sortie invalide, validation Zod, cache, journal `AiCallLog`, repli), prompts versionnés et
    sécurisés (données non fiables en balises), messages de relance/envoi libre rédigés par l'IA
    (Premium) avec repli sur modèle, bouton « Rédiger avec l'IA » et indicateur IA côté site.
-5. Offres.
+5. **Offres** ✅ : connecteurs `JobSource` (démo, France Travail, La bonne alternance isolés et
+   gracieux, Adzuna désactivé), normalisation + dédoublonnage, enrichissement par règles, score
+   déterministe et filtre junior (fonctions pures testées), limite d'offres vues/jour (gratuit),
+   page Offres (Rechercher), « J'ai postulé » relié aux relances, « Masquer », gestion des pannes.
 6. Automatisations.
 7. CV.
 8. Paiement (mode test).
