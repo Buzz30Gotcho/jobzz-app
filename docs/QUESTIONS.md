@@ -2,6 +2,47 @@
 
 Difficulté progressive. La réponse est cachée : déplie le bloc quand tu veux vérifier.
 
+## Étape 2 — Profil et accueil guidé
+
+### 1. (repérage) Dans quel fichier décide-t-on des compétences proposées « en un clic » selon le métier ?
+
+<details>
+<summary>Réponse</summary>
+
+Dans `packages/shared/src/data/skill-suggestions.ts` : la table `SKILL_DOMAINS` (un domaine =
+mots-clés déclencheurs + compétences) et la fonction pure `suggestSkills(jobLabels)`. Elle est
+utilisée côté front dans la page Profil et l'accueil guidé (`skillSuggestions()`), et testée dans
+`skill-suggestions.test.ts`. Exercice associé : `exercices/02-suggest-skills/`.
+
+</details>
+
+### 2. (pourquoi) Pourquoi la recherche de métiers renvoie-t-elle une liste vide en local au lieu d'une erreur ?
+
+<details>
+<summary>Réponse</summary>
+
+Parce que les clés France Travail ne sont pas configurées par défaut (`.env`). `RomeService`
+(`apps/api/src/referentials/rome.service.ts`) renvoie alors `[]`, et le composant `metier-field`
+bascule sur la **saisie libre** : le libellé saisi devient un métier sans code ROME. On ne veut
+jamais **inventer** de code ROME (CLAUDE.md §4.2), et une panne de référentiel ne doit jamais
+bloquer l'utilisateur (§4.4). Les communes, elles, viennent de geo.api.gouv.fr (sans clé) et
+fonctionnent en local.
+
+</details>
+
+### 3. (technique) Comment le `PUT /profile` crée-t-il le profil s'il n'existe pas encore, en une seule requête ?
+
+<details>
+<summary>Réponse</summary>
+
+Via `prisma.profile.upsert` dans `ProfileService.update` (`apps/api/src/profile/profile.service.ts`) :
+la clé `where: { userId }` cherche le profil ; `create` l'ajoute (avec `userId`) s'il est absent,
+`update` le modifie sinon. Les mêmes champs (`fields`) servent aux deux, et les chaînes de date
+`AAAA-MM-JJ` sont converties en `Date` UTC à minuit. La réponse repasse par `toPublicProfile` qui
+normalise les champs JSON et calcule la complétude. Test : `profile.service.test.ts`.
+
+</details>
+
 ## Étape 1 — Socle
 
 ### 1. (repérage) Où est défini le fait qu'une inscription libre devient une inscription sur invitation ?

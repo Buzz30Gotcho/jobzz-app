@@ -67,7 +67,8 @@ export class RegisterComponent {
     this.error.set(null);
     try {
       await this.auth.register(this.form.getRawValue());
-      await this.router.navigateByUrl('/app');
+      // Nouveau compte → accueil guidé (CLAUDE.md §3).
+      await this.router.navigateByUrl('/app/bienvenue');
     } catch (err) {
       this.error.set(errorMessage(err, 'Création impossible. Réessaie.'));
     } finally {

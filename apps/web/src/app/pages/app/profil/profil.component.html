@@ -1,0 +1,236 @@
+<div class="mx-auto max-w-5xl">
+  <h1 class="text-2xl font-semibold">Profil</h1>
+
+  <!-- Sous-navigation du Profil (CLAUDE.md §11). -->
+  <nav class="mt-4 flex gap-2 border-b border-border" aria-label="Sections du profil">
+    <a
+      routerLink="/app/profil"
+      routerLinkActive="border-accent text-text"
+      [routerLinkActiveOptions]="{ exact: true }"
+      class="-mb-px border-b-2 border-transparent px-3 py-2 text-sm text-text-secondary hover:text-text"
+      >Mes infos</a
+    >
+    <a
+      routerLink="/app/profil/cv"
+      routerLinkActive="border-accent text-text"
+      class="-mb-px border-b-2 border-transparent px-3 py-2 text-sm text-text-secondary hover:text-text"
+      >Mon CV</a
+    >
+    <a
+      routerLink="/app/profil/parametres"
+      routerLinkActive="border-accent text-text"
+      class="-mb-px border-b-2 border-transparent px-3 py-2 text-sm text-text-secondary hover:text-text"
+      >Paramètres</a
+    >
+  </nav>
+
+  @if (loading()) {
+    <div class="mt-8 space-y-4">
+      <div class="h-10 animate-pulse rounded-field bg-surface-raised"></div>
+      <div class="h-32 animate-pulse rounded-card bg-surface-raised"></div>
+    </div>
+  } @else {
+    <div class="mt-6 grid gap-6 lg:grid-cols-[1fr_280px]">
+      <!-- Formulaire -->
+      <form class="space-y-8" [formGroup]="form" (ngSubmit)="save()">
+        <!-- Ce que je cherche (obligatoire pour la recherche) -->
+        <section class="jz-card">
+          <h2 class="text-lg font-semibold">Ce que je cherche</h2>
+          <p class="mt-1 text-sm text-text-secondary">
+            Ces champs servent à trouver les offres qui te correspondent.
+          </p>
+
+          <div class="mt-5 space-y-5">
+            <div>
+              <span class="jz-label">Métier(s) visé(s)</span>
+              <jz-metier-field [(value)]="jobTargets" />
+            </div>
+
+            <div>
+              <span class="jz-label">Type(s) de contrat</span>
+              <div class="flex flex-wrap gap-2">
+                @for (type of contractTypesList; track type) {
+                  <button
+                    type="button"
+                    (click)="toggleContract(type)"
+                    [class]="
+                      contractTypes().includes(type)
+                        ? 'rounded-full bg-accent px-4 py-1.5 text-sm font-medium text-accent-ink'
+                        : 'rounded-full border border-border px-4 py-1.5 text-sm text-text-secondary hover:text-text'
+                    "
+                  >
+                    {{ contractLabels[type] }}
+                  </button>
+                }
+              </div>
+            </div>
+
+            @if (showAlternance()) {
+              <div class="grid gap-4 rounded-field border border-border p-4 sm:grid-cols-3">
+                <div class="sm:col-span-3 text-sm font-medium text-text-secondary">Alternance</div>
+                <div>
+                  <label class="jz-label" for="rythme">Rythme</label>
+                  <input id="rythme" class="jz-input" formControlName="alternanceRythme" placeholder="3 sem. / 1 sem." />
+                </div>
+                <div>
+                  <label class="jz-label" for="altDuree">Durée (mois)</label>
+                  <input id="altDuree" type="number" class="jz-input" formControlName="alternanceDureeMois" />
+                </div>
+                <div>
+                  <label class="jz-label" for="ecole">École</label>
+                  <input id="ecole" class="jz-input" formControlName="alternanceEcole" />
+                </div>
+              </div>
+            }
+
+            @if (showInternship()) {
+              <div class="grid gap-4 rounded-field border border-border p-4 sm:grid-cols-2">
+                <div class="sm:col-span-2 text-sm font-medium text-text-secondary">Stage</div>
+                <div>
+                  <label class="jz-label" for="stageDuree">Durée (mois)</label>
+                  <input id="stageDuree" type="number" class="jz-input" formControlName="internshipDureeMois" />
+                </div>
+                <div>
+                  <label class="jz-label" for="periode">Période</label>
+                  <input id="periode" class="jz-input" formControlName="internshipPeriode" placeholder="Été 2027" />
+                </div>
+              </div>
+            }
+
+            @if (showExperience()) {
+              <div>
+                <label class="jz-label" for="experience">Niveau d'expérience</label>
+                <select id="experience" class="jz-input" formControlName="experienceLevel">
+                  <option value="">Non précisé</option>
+                  @for (lvl of experienceLevels; track lvl) {
+                    <option [value]="lvl">{{ experienceLabels[lvl] }}</option>
+                  }
+                </select>
+                @if (form.controls.experienceLevel.value === 'plus_3_ans') {
+                  <p class="mt-2 text-xs text-text-muted">
+                    Jobzz est pensé pour les débuts de carrière : tu trouveras surtout des offres juniors.
+                  </p>
+                }
+              </div>
+            }
+
+            <div>
+              <span class="jz-label">Ville(s) et rayon</span>
+              <jz-commune-field [(value)]="locations" />
+            </div>
+
+            <div class="grid gap-4 sm:grid-cols-2">
+              <div>
+                <label class="jz-label" for="availableFrom">Date de début possible</label>
+                <input id="availableFrom" type="date" class="jz-input" formControlName="availableFrom" />
+              </div>
+              <div>
+                <label class="jz-label" for="remote">Préférence télétravail</label>
+                <select id="remote" class="jz-input" formControlName="remotePreference">
+                  <option value="">Non précisé</option>
+                  @for (pref of remotePreferences; track pref) {
+                    <option [value]="pref">{{ remoteLabels[pref] }}</option>
+                  }
+                </select>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Ce qui améliore les offres (facultatif) -->
+        <section class="jz-card">
+          <h2 class="text-lg font-semibold">Pour de meilleures offres</h2>
+          <p class="mt-1 text-sm text-text-secondary">Facultatif, mais ça affine le score.</p>
+
+          <div class="mt-5 space-y-5">
+            <div>
+              <span class="jz-label">Compétences</span>
+              <jz-tags-field [(value)]="skills" [suggestions]="skillSuggestions()" placeholder="Ajoute une compétence puis Entrée" />
+            </div>
+            <div>
+              <span class="jz-label">Secteurs</span>
+              <jz-tags-field [(value)]="sectors" placeholder="Ex. Santé, Numérique…" />
+            </div>
+            <div class="grid gap-4 sm:grid-cols-2">
+              <div>
+                <label class="jz-label" for="eduLevel">Niveau d'études</label>
+                <input id="eduLevel" class="jz-input" formControlName="educationLevel" placeholder="Bac+5…" />
+              </div>
+              <div>
+                <label class="jz-label" for="eduField">Domaine d'études</label>
+                <input id="eduField" class="jz-input" formControlName="educationField" />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Identité et liens (facultatif) -->
+        <section class="jz-card">
+          <h2 class="text-lg font-semibold">Mes infos de contact</h2>
+          <p class="mt-1 text-sm text-text-secondary">
+            Servent à ta signature de messages. Le prénom personnalise ton accueil.
+          </p>
+
+          <div class="mt-5 grid gap-4 sm:grid-cols-2">
+            <div>
+              <label class="jz-label" for="firstName">Prénom</label>
+              <input id="firstName" class="jz-input" formControlName="firstName" autocomplete="given-name" />
+            </div>
+            <div>
+              <label class="jz-label" for="lastName">Nom</label>
+              <input id="lastName" class="jz-input" formControlName="lastName" autocomplete="family-name" />
+            </div>
+            <div>
+              <label class="jz-label" for="phone">Téléphone</label>
+              <input id="phone" class="jz-input" formControlName="phone" autocomplete="tel" />
+            </div>
+            <div>
+              <label class="jz-label" for="linkedin">Lien LinkedIn</label>
+              <input id="linkedin" class="jz-input" formControlName="linkedinUrl" placeholder="https://linkedin.com/in/…" />
+            </div>
+            <div class="sm:col-span-2">
+              <span class="jz-label">Autres liens (portfolio, GitHub…)</span>
+              <jz-tags-field [(value)]="links" placeholder="https://… puis Entrée" />
+            </div>
+          </div>
+        </section>
+
+        @if (error()) {
+          <p class="jz-field-error">{{ error() }}</p>
+        }
+
+        <div class="flex items-center gap-4">
+          <button type="submit" class="jz-btn-primary" [disabled]="saving()">
+            {{ saving() ? 'Enregistrement…' : 'Enregistrer' }}
+          </button>
+          @if (saved()) {
+            <span class="flex items-center gap-1 text-sm text-accent">
+              <lucide-icon name="check" [size]="16" /> Enregistré
+            </span>
+          }
+        </div>
+      </form>
+
+      <!-- Complétude -->
+      <aside class="lg:sticky lg:top-6 h-fit">
+        <div class="jz-card">
+          <div class="flex items-center justify-between">
+            <h2 class="font-semibold">Complétude</h2>
+            <span class="font-mono text-lg text-accent">{{ completion()?.percent ?? 0 }}%</span>
+          </div>
+          <div class="mt-3 h-2 overflow-hidden rounded-full bg-surface-raised">
+            <div class="h-full rounded-full bg-accent transition-all" [style.width.%]="completion()?.percent ?? 0"></div>
+          </div>
+          <ul class="mt-4 space-y-2 text-sm">
+            @for (item of completion()?.items ?? []; track item.key) {
+              <li class="flex items-center gap-2" [class.text-text-muted]="!item.done">
+                <lucide-icon [name]="item.done ? 'check' : 'circle'" [size]="15" [class]="item.done ? 'text-accent' : 'text-text-muted'" />
+                {{ item.label }}
+              </li>
+            }
+          </ul>
+        </div>
+      </aside>
+    </div>
+  }
+</div>

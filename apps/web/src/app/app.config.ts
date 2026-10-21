@@ -21,6 +21,13 @@ import {
   LogOut,
   Sparkles,
   Target,
+  X,
+  Plus,
+  Check,
+  Circle,
+  MapPin,
+  ArrowRight,
+  ArrowLeft,
 } from 'lucide-angular';
 import { routes } from './app.routes';
 import { authInterceptor } from './core/auth/auth.interceptor';
@@ -45,6 +52,13 @@ export const appConfig: ApplicationConfig = {
         LogOut,
         Sparkles,
         Target,
+        X,
+        Plus,
+        Check,
+        Circle,
+        MapPin,
+        ArrowRight,
+        ArrowLeft,
       }),
     ),
     // Tente de restaurer la session (cookie de rafraîchissement) au démarrage.

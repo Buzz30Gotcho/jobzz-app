@@ -22,3 +22,4 @@ mêmes tests. La vraie version tourne déjà dans l'app ; ici, tu t'entraînes s
 | Nº | Nom | Ce que tu implémentes | Version de référence |
 | --- | --- | --- | --- |
 | 01 | entitlements | Résolution d'une limite selon le plan + comptage | `packages/shared/src/entitlements.ts` |
+| 02 | suggest-skills | Suggestions de compétences par domaine (insensible aux accents, dédoublonnage) | `packages/shared/src/data/skill-suggestions.ts` |

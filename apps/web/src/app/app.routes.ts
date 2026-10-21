@@ -98,10 +98,26 @@ export const routes: Routes = [
         data: { title: 'Offres', subtitle: 'Recherche et automatisations (étapes 5–6).' },
       },
       {
+        path: 'bienvenue',
+        loadComponent: () =>
+          import('./pages/app/onboarding.component').then((m) => m.OnboardingComponent),
+      },
+      {
         path: 'profil',
         loadComponent: () =>
+          import('./pages/app/profil/profil.component').then((m) => m.ProfilComponent),
+      },
+      {
+        path: 'profil/cv',
+        loadComponent: () =>
           import('./pages/app/placeholder.component').then((m) => m.PlaceholderComponent),
-        data: { title: 'Profil', subtitle: 'Tes infos, ton CV, tes paramètres (étape 2).' },
+        data: { title: 'Mon CV', subtitle: 'Analyse du CV (étape 7).' },
+      },
+      {
+        path: 'profil/parametres',
+        loadComponent: () =>
+          import('./pages/app/placeholder.component').then((m) => m.PlaceholderComponent),
+        data: { title: 'Paramètres', subtitle: 'Mail des offres, abonnement, mot de passe, Mes données (étapes 8–9).' },
       },
       {
         path: 'aide',

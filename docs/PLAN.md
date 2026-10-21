@@ -61,11 +61,13 @@ colonnes de filtre/tri.
 
 ## 5. Étapes (cf. CLAUDE.md §14)
 
-1. **Socle** ← *étape en cours* : monorepo, Docker Compose, NestJS, Prisma (schéma complet),
+1. **Socle** ✅ : monorepo, Docker Compose, NestJS, Prisma (schéma complet),
    authentification complète, rôles, création admin, module `entitlements` (désactivé),
    Angular (squelette, design system, mise en page, thème admin), page d'accueil publique,
    pages d'authentification, CI, seed démo.
-2. Profil et accueil guidé.
+2. **Profil et accueil guidé** ✅ : référentiels communes (geo.api.gouv.fr) et métiers ROME
+   (France Travail, repli saisie libre), module `profile` (GET/PUT, complétude), formulaire de
+   profil (widgets métiers/villes/compétences), accueil guidé en 3 écrans (`/app/bienvenue`).
 3. Candidatures et relances.
 4. Couche IA.
 5. Offres.

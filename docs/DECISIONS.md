@@ -3,6 +3,51 @@
 Journal des décisions prises en autonomie (date, décision, raison, alternatives écartées),
 conformément au mode de travail du cahier des charges (CLAUDE.md §0).
 
+## 2026-10-21 — Étape 2 (profil et accueil guidé)
+
+### Schéma de profil : tout facultatif à l'enregistrement
+- **Décision** : `profileUpdateSchema` (`packages/shared/src/schemas/profile.ts`) rend **tous** les
+  champs facultatifs à l'enregistrement (valeurs par défaut, chaînes vides → `null`). La contrainte
+  « métier/contrat/ville/date obligatoires » est portée par l'accueil guidé et par la recherche
+  (étape 5), pas par le `PUT /profile`.
+- **Raison** : on n'empêche jamais de sauvegarder un profil partiel (principe « ne jamais perdre de
+  données », divulgation progressive). Les codes ROME sont validés (`^[A-Z]\d{4}$`) pour qu'ils ne
+  soient jamais inventés.
+- **Alternatives écartées** : exiger les champs obligatoires côté schéma → bloquerait les sauvegardes
+  intermédiaires de l'accueil guidé.
+
+### Complétude du profil : fonction pure partagée
+- **Décision** : `computeProfileCompletion` (`packages/shared/src/profile-completion.ts`), testée,
+  renvoie un pourcentage et des **pastilles neutres** (jamais rouges). Elle prend `hasCv` en entrée
+  (le CV n'est pas dans le profil ; branché à l'étape 7). Calcul côté serveur, affiché page Profil.
+- **Raison** : CLAUDE.md §4.2 ; une seule source de vérité, réutilisable front/back.
+
+### Référentiels : communes complètes, ROME gracieux
+- **Décision** : module `referentials` (`apps/api/src/referentials/`). **Communes** via
+  geo.api.gouv.fr (sans clé, pleinement fonctionnel en local). **Métiers ROME** via l'API France
+  Travail : si les clés sont absentes (défaut local), la recherche renvoie `[]` et le front bascule
+  sur la **saisie libre** (aucun code ROME inventé). Cache mémoire TTL (7 j) partagé.
+- **À vérifier** : URLs et noms de champs de l'API ROME France Travail (jeton OAuth2
+  *client credentials*, endpoint de requête métiers), **isolés dans `rome.service.ts`** — à
+  confronter à la doc officielle à l'étape 5. Les mappeurs (`mapGeoCommunes`, `mapRomeJobs`) sont des
+  fonctions pures testées avec des réponses enregistrées (aucun appel réseau dans les tests).
+
+### Accueil guidé : prénom d'abord, 3 écrans passables
+- **Décision** : `/app/bienvenue` (`onboarding.component.ts`), 3 écrans chacun passable ; le profil
+  est enregistré au passage de l'écran 2 (compétences) puis à la fin. L'inscription redirige
+  désormais vers l'accueil guidé. L'écran 3 (automatisations) est **informatif** : les
+  automatisations arrivent à l'étape 6 — rien n'est promis ni simulé (honnêteté, §1).
+- **Raison** : CLAUDE.md §3 ; « créer doit prendre quelques secondes », divulgation progressive.
+
+### Formulaire de profil : réactif pour les scalaires, signals pour les listes
+- **Décision** : la page Profil (`pages/app/profil/`) combine un `FormGroup` typé (champs simples)
+  et des **composants sur mesure** pilotés par signals (`metier-field`, `commune-field`,
+  `tags-field`) avec liaison `[(value)]` via `model()`.
+- **Raison** : les widgets de liste (métiers ROME, villes + rayon, pastilles de compétences) sont
+  plus clairs en signals qu'en `FormArray` ; le reste reste en Reactive Forms typés (§7).
+- **Alternatives écartées** : tout en `FormArray` (verbeux, moins lisible) ; Angular CDK Overlay pour
+  les listes déroulantes (reporté : une liste positionnée en `relative/absolute` suffit en v1).
+
 ## 2026-10-20 — Étape 1 (socle)
 
 ### Gestionnaire de paquets et monorepo
