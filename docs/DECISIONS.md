@@ -3,6 +3,37 @@
 Journal des décisions prises en autonomie (date, décision, raison, alternatives écartées),
 conformément au mode de travail du cahier des charges (CLAUDE.md §0).
 
+## 2026-10-21 — Étape 3 (candidatures et relances)
+
+### « À buzzer » calculé par requête, pas par tâche planifiée
+- **Décision** : l'échéance `nextFollowUpAt` est calculée **à la création** de la candidature
+  (`computeNextFollowUpAt`, `apps/api/src/followups/follow-up-rule.ts`) ; l'onglet « À buzzer »
+  est une simple requête `status = en_attente ET nextFollowUpAt <= maintenant`. Pas de tâche
+  pg-boss quotidienne pour l'instant.
+- **Raison** : plus simple et plus robuste qu'un job (pas d'état à recalculer, rien à rattraper
+  après une panne). pg-boss sera introduit à l'étape 6 pour les automatisations ; si une tâche de
+  maintenance des relances devient utile, elle s'ajoutera là.
+- **Test** : `follow-up-rule.test.ts` couvre les 7 jours et le décalage samedi/dimanche → lundi.
+
+### Jobzz n'envoie aucun mail : liens d'ouverture de messagerie
+- **Décision** : `buildMailLinks` (`packages/shared/src/mail-links.ts`) construit les URLs Gmail,
+  Outlook et `mailto` ; le compositeur (`message-composer.component.ts`) ouvre la messagerie de
+  l'utilisateur, puis « C'est envoyé ? » enregistre la relance seulement sur confirmation. Au-delà
+  de 1 800 caractères d'URL, on bascule sur « Copier ».
+- **Raison** : CLAUDE.md §4.3/§4.15 — Jobzz prépare, l'utilisateur envoie. Aucun envoi serveur.
+
+### Doublons de candidatures
+- **Décision** : clé = `normalizeKey(entreprise)` + `normalizeKey(poste)` (minuscules, sans accents
+  ni ponctuation, sans formes juridiques — fonction déjà testée). « J'ai postulé » sur un doublon
+  renvoie la candidature existante avec `duplicate: true` plutôt que d'en créer une seconde.
+- **Raison** : CLAUDE.md §4.3.
+
+### Sortie de flux d'une relance
+- **Décision** : enregistrer une relance (`relance`, `relance_encore`, `linkedin`) passe la
+  candidature en `relancee`, incrémente `followUpCount`, et met `nextFollowUpAt = null` (sort de
+  « À buzzer »). Une réponse (`respond`) passe en `reponse_recue` ; l'archivage pose `archivedAt`.
+- **Raison** : CLAUDE.md §4.3 (statuts, « Relancer encore » à la demande, pas de 2e relance auto).
+
 ## 2026-10-21 — Étape 2 (profil et accueil guidé)
 
 ### Schéma de profil : tout facultatif à l'enregistrement

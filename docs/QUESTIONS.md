@@ -2,6 +2,46 @@
 
 Difficulté progressive. La réponse est cachée : déplie le bloc quand tu veux vérifier.
 
+## Étape 3 — Candidatures et relances
+
+### 1. (repérage) Où est codée la règle « relancer 7 jours après, décalée au lundi si week-end » ?
+
+<details>
+<summary>Réponse</summary>
+
+Dans `apps/api/src/followups/follow-up-rule.ts` (`computeNextFollowUpAt`). Le délai (7 jours) et le
+décalage week-end viennent de `FOLLOW_UP` dans `packages/shared/src/config.ts`. Le jour de la
+semaine à Paris est donné par `isoWeekdayParis` (`apps/api/src/common/time.ts`). Testé dans
+`follow-up-rule.test.ts` (semaine, samedi, dimanche). Exercice proche : `03-render-template`.
+
+</details>
+
+### 2. (pourquoi) Pourquoi Jobzz n'envoie-t-il pas lui-même les mails de relance ?
+
+<details>
+<summary>Réponse</summary>
+
+Choix produit (CLAUDE.md §1, §4.3, §4.15) : « l'outil prépare, l'utilisateur valide ». Jobzz
+construit le message et ouvre la messagerie de l'utilisateur via des liens (`buildMailLinks`,
+`packages/shared/src/mail-links.ts`) — Gmail, Outlook, `mailto`. Au retour, « C'est envoyé ? »
+enregistre la relance seulement si l'utilisateur confirme. Avantages : pas de configuration SMTP au
+nom de l'utilisateur, pas de risque d'envoi non voulu, le mail part de sa vraie adresse.
+
+</details>
+
+### 3. (technique) Comment un utilisateur est-il empêché d'agir sur la candidature d'un autre ?
+
+<details>
+<summary>Réponse</summary>
+
+Chaque méthode de `ApplicationsService` filtre par `userId`. Pour les actions sur une candidature
+précise (relance, réponse, archive), `requireOwned(userId, id)` fait un `findFirst({ where: { id,
+userId } })` et lève `NotFoundException` si rien ne correspond — un identifiant appartenant à
+quelqu'un d'autre est donc traité comme introuvable. Les listes (`list`, `due`) n'interrogent que
+les lignes de l'utilisateur courant (injecté depuis le JWT via `@CurrentUser`).
+
+</details>
+
 ## Étape 2 — Profil et accueil guidé
 
 ### 1. (repérage) Dans quel fichier décide-t-on des compétences proposées « en un clic » selon le métier ?

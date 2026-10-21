@@ -88,8 +88,12 @@ export const routes: Routes = [
       {
         path: 'relances',
         loadComponent: () =>
-          import('./pages/app/placeholder.component').then((m) => m.PlaceholderComponent),
-        data: { title: 'Relances', subtitle: 'Tes buzz et tes candidatures (étape 3).' },
+          import('./pages/app/relances/buzzer.component').then((m) => m.BuzzerComponent),
+      },
+      {
+        path: 'relances/candidatures',
+        loadComponent: () =>
+          import('./pages/app/relances/candidatures.component').then((m) => m.CandidaturesComponent),
       },
       {
         path: 'offres',

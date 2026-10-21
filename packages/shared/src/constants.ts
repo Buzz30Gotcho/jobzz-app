@@ -21,6 +21,28 @@ export type ApplicationStatus = (typeof APPLICATION_STATUSES)[number];
 export const RESPONSE_TYPES = ['entretien', 'refus', 'autre'] as const;
 export type ResponseType = (typeof RESPONSE_TYPES)[number];
 
+/** Origine d'une candidature : depuis une offre (« J'ai postulé ») ou un envoi libre. */
+export const APPLICATION_SOURCES = ['offer', 'free_send'] as const;
+export type ApplicationSource = (typeof APPLICATION_SOURCES)[number];
+
+/** Nature d'un message envoyé (relance ou envoi libre). */
+export const FOLLOWUP_KINDS = [
+  'relance',
+  'relance_encore',
+  'spontanee',
+  'remerciement',
+  'linkedin',
+] as const;
+export type FollowUpKind = (typeof FOLLOWUP_KINDS)[number];
+
+/** Canal par lequel l'utilisateur a envoyé (Jobzz n'envoie jamais lui-même). */
+export const FOLLOWUP_CHANNELS = ['gmail', 'outlook', 'mailto', 'copy', 'linkedin'] as const;
+export type FollowUpChannel = (typeof FOLLOWUP_CHANNELS)[number];
+
+/** Types d'envoi libre (« Écrire à une entreprise »). */
+export const FREE_SEND_TYPES = ['spontanee', 'remerciement'] as const;
+export type FreeSendType = (typeof FREE_SEND_TYPES)[number];
+
 export const SUBSCRIPTION_OFFERS = ['monthly', 'pass_3_months', 'launch'] as const;
 export type SubscriptionOffer = (typeof SUBSCRIPTION_OFFERS)[number];
 

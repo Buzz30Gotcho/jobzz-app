@@ -28,6 +28,8 @@ import {
   MapPin,
   ArrowRight,
   ArrowLeft,
+  Copy,
+  PenLine,
 } from 'lucide-angular';
 import { routes } from './app.routes';
 import { authInterceptor } from './core/auth/auth.interceptor';
@@ -59,6 +61,8 @@ export const appConfig: ApplicationConfig = {
         MapPin,
         ArrowRight,
         ArrowLeft,
+        Copy,
+        PenLine,
       }),
     ),
     // Tente de restaurer la session (cookie de rafraîchissement) au démarrage.

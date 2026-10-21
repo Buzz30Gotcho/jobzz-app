@@ -1,7 +1,8 @@
-import { Component, inject } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { LucideAngularModule } from 'lucide-angular';
 import { AuthService } from '../core/auth/auth.service';
+import { ApplicationsService } from '../core/applications/applications.service';
 import { LogoComponent } from '../shared/logo.component';
 
 interface NavEntry {
@@ -31,6 +32,9 @@ interface NavEntry {
             >
               <lucide-icon [name]="entry.icon" [size]="18" />
               <span>{{ entry.label }}</span>
+              @if (entry.path === '/app/relances' && applications.dueCount() > 0) {
+                <span class="ml-auto rounded-full bg-accent px-1.5 font-mono text-xs text-accent-ink">{{ applications.dueCount() }}</span>
+              }
             </a>
           }
         </nav>
@@ -92,9 +96,15 @@ interface NavEntry {
     </div>
   `,
 })
-export class AppShellComponent {
+export class AppShellComponent implements OnInit {
   readonly auth = inject(AuthService);
+  readonly applications = inject(ApplicationsService);
   private readonly router = inject(Router);
+
+  async ngOnInit(): Promise<void> {
+    // Alimente le badge « buzz du jour » du menu (ignore les erreurs réseau).
+    await this.applications.due().catch(() => []);
+  }
 
   readonly nav: NavEntry[] = [
     { path: '/app', label: 'Accueil', icon: 'home' },

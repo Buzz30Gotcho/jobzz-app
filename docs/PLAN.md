@@ -68,7 +68,10 @@ colonnes de filtre/tri.
 2. **Profil et accueil guidé** ✅ : référentiels communes (geo.api.gouv.fr) et métiers ROME
    (France Travail, repli saisie libre), module `profile` (GET/PUT, complétude), formulaire de
    profil (widgets métiers/villes/compétences), accueil guidé en 3 écrans (`/app/bienvenue`).
-3. Candidatures et relances.
+3. **Candidatures et relances** ✅ : modules `applications`/`followups`, règle d'échéance (7 j,
+   week-end → lundi), statuts et « L'entreprise a répondu », modèles de messages, compositeur
+   d'envoi (Gmail/Outlook/mailto/copier) avec confirmation, autre canal LinkedIn, envoi libre,
+   page Relances (À buzzer + Mes candidatures), tableau de bord (buzz du jour, récap semaine).
 4. Couche IA.
 5. Offres.
 6. Automatisations.
