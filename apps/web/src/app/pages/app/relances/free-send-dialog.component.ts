@@ -1,8 +1,10 @@
-import { Component, inject, output, signal } from '@angular/core';
+import { Component, OnInit, inject, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { LucideAngularModule } from 'lucide-angular';
 import { renderMessage, type FreeSendType } from '@jobzz/shared';
 import { ApplicationsService } from '../../../core/applications/applications.service';
 import { ProfileService } from '../../../core/profile/profile.service';
+import { AiService } from '../../../core/ai/ai.service';
 import { buildSignature } from '../../../core/applications/message-vars';
 import { ModalComponent } from '../../../shared/modal.component';
 import { MessageComposerComponent, type ComposedMessage } from '../../../shared/message-composer.component';
@@ -14,7 +16,7 @@ import { MessageComposerComponent, type ComposedMessage } from '../../../shared/
 @Component({
   selector: 'jz-free-send-dialog',
   standalone: true,
-  imports: [FormsModule, ModalComponent, MessageComposerComponent],
+  imports: [FormsModule, LucideAngularModule, ModalComponent, MessageComposerComponent],
   template: `
     <jz-modal title="Écrire à une entreprise" (closed)="closed.emit()">
       @if (!ready()) {
@@ -54,10 +56,22 @@ import { MessageComposerComponent, type ComposedMessage } from '../../../shared/
           <button type="button" class="jz-btn-primary w-full" (click)="prepare()">Préparer le message</button>
         </div>
       } @else {
+        <div class="mb-3 flex items-center justify-between gap-2">
+          @if (aiAvailable()) {
+            <button type="button" class="jz-btn-ghost px-3 py-1.5 text-sm" [disabled]="aiLoading()" (click)="writeWithAi()">
+              <lucide-icon name="sparkles" [size]="14" /> {{ aiLoading() ? '…' : "Rédiger avec l'IA" }}
+            </button>
+          }
+          @if (aiGenerated()) {
+            <span class="flex items-center gap-1 text-xs text-accent">
+              <lucide-icon name="sparkles" [size]="13" /> Rédigé par l'IA
+            </span>
+          }
+        </div>
         <jz-message-composer
-          [initialTo]="contactEmail"
-          [initialSubject]="subject()"
-          [initialBody]="body()"
+          [to]="contactEmail"
+          [(subject)]="subject"
+          [(body)]="body"
           [saving]="saving()"
           (sent)="onSent($event)"
           (cancelled)="ready.set(false)"
@@ -66,12 +80,40 @@ import { MessageComposerComponent, type ComposedMessage } from '../../../shared/
     </jz-modal>
   `,
 })
-export class FreeSendDialogComponent {
+export class FreeSendDialogComponent implements OnInit {
   private readonly applications = inject(ApplicationsService);
   private readonly profileService = inject(ProfileService);
+  private readonly ai = inject(AiService);
 
   readonly done = output<void>();
   readonly closed = output<void>();
+
+  readonly aiAvailable = signal(false);
+  readonly aiLoading = signal(false);
+  readonly aiGenerated = signal(false);
+
+  async ngOnInit(): Promise<void> {
+    this.aiAvailable.set(await this.ai.loadStatus());
+  }
+
+  async writeWithAi(): Promise<void> {
+    if (this.aiLoading()) return;
+    this.aiLoading.set(true);
+    try {
+      const message = await this.ai.freeMessage({
+        type: this.type(),
+        companyName: this.companyName,
+        position: this.position || undefined,
+      });
+      this.subject.set(message.subject);
+      this.body.set(message.body);
+      this.aiGenerated.set(message.aiGenerated);
+    } catch {
+      // IA indisponible ou non autorisée : on garde le modèle déjà affiché.
+    } finally {
+      this.aiLoading.set(false);
+    }
+  }
 
   readonly active = 'rounded-full bg-accent px-4 py-1.5 text-sm font-medium text-accent-ink';
   readonly inactive = 'rounded-full border border-border px-4 py-1.5 text-sm text-text-secondary hover:text-text';

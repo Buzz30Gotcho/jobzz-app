@@ -14,6 +14,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { normalizeKey } from '../common/normalize';
 import { EntitlementsService, type EntitlementSubject } from '../entitlements/entitlements.service';
 import { UsersService } from '../users/users.service';
+import { AiMessagesService, type GeneratedMessage } from '../ai/ai-messages.service';
 import { computeNextFollowUpAt } from '../followups/follow-up-rule';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -26,7 +27,24 @@ export class ApplicationsService {
     private readonly prisma: PrismaService,
     private readonly entitlements: EntitlementsService,
     private readonly users: UsersService,
+    private readonly aiMessages: AiMessagesService,
   ) {}
+
+  /** Rédige un message de relance (IA si Premium et disponible, sinon modèle) pour une candidature. */
+  async aiMessage(subject: EntitlementSubject, applicationId: string): Promise<GeneratedMessage> {
+    const application = await this.requireOwned(subject.id, applicationId);
+    const kind = !application.contactEmail
+      ? 'linkedin'
+      : application.followUpCount > 0
+        ? 'relance_encore'
+        : 'relance';
+    return this.aiMessages.generate(subject, {
+      kind,
+      entreprise: application.companyName,
+      poste: application.position,
+      dateCandidature: application.appliedAt.toLocaleDateString('fr-FR'),
+    });
+  }
 
   /** Liste « Mes candidatures » filtrée (recherche par entreprise, filtre par statut). */
   async list(userId: string, filter: ApplicationFilter, search?: string): Promise<PublicApplication[]> {

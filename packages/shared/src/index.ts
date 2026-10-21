@@ -9,5 +9,6 @@ export * from './schemas/auth';
 export * from './schemas/profile';
 export * from './schemas/referentials';
 export * from './schemas/applications';
+export * from './schemas/ai';
 export * from './data/skill-suggestions';
 export * from './data/message-templates';

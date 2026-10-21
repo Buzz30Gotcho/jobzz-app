@@ -2,13 +2,15 @@ import { describe, expect, it, vi } from 'vitest';
 import type { PrismaService } from '../prisma/prisma.service';
 import type { EntitlementsService } from '../entitlements/entitlements.service';
 import type { UsersService } from '../users/users.service';
+import type { AiMessagesService } from '../ai/ai-messages.service';
 import { ApplicationsService } from './applications.service';
 
 function makeService(prismaOverrides: Record<string, unknown>) {
   const prisma = prismaOverrides as unknown as PrismaService;
   const entitlements = { consume: vi.fn().mockResolvedValue(undefined) } as unknown as EntitlementsService;
   const users = { firstName: vi.fn().mockResolvedValue(null) } as unknown as UsersService;
-  return new ApplicationsService(prisma, entitlements, users);
+  const aiMessages = { generate: vi.fn() } as unknown as AiMessagesService;
+  return new ApplicationsService(prisma, entitlements, users, aiMessages);
 }
 
 const baseRow = {

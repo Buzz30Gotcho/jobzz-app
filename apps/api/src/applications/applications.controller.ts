@@ -8,6 +8,7 @@ import {
   type CreateFromOfferInput,
   type DashboardSummary,
   type FreeSendInput,
+  type GeneratedMessage,
   type ListApplicationsInput,
   type PublicApplication,
   type RecordFollowUpInput,
@@ -63,6 +64,11 @@ export class ApplicationsController {
     @Body() body: RecordFollowUpInput,
   ): Promise<PublicApplication> {
     return this.applications.recordFollowUp(user.id, id, body);
+  }
+
+  @Post(':id/ai-message')
+  aiMessage(@CurrentUser() user: RequestUser, @Param('id') id: string): Promise<GeneratedMessage> {
+    return this.applications.aiMessage({ id: user.id, plan: user.plan, role: user.role }, id);
   }
 
   @Post(':id/respond')

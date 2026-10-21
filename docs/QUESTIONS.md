@@ -2,6 +2,48 @@
 
 Difficulté progressive. La réponse est cachée : déplie le bloc quand tu veux vérifier.
 
+## Étape 4 — Couche IA
+
+### 1. (repérage) Où décide-t-on de retomber sur un modèle quand l'IA ne répond pas ?
+
+<details>
+<summary>Réponse</summary>
+
+Dans `apps/api/src/ai/ai-messages.service.ts` (`generate`) : l'appel passe par
+`AiService.generateJson` ; si une `AiUnavailableError` est levée (IA désactivée, délai dépassé,
+réseau, ou sortie invalide après une nouvelle tentative), on retombe sur `renderMessage(kind, vars)`
+et on renvoie `aiGenerated: false`. Le front affiche l'indicateur ✨ seulement quand `aiGenerated`
+est vrai.
+
+</details>
+
+### 2. (pourquoi) Pourquoi insérer le texte des offres/CV entre des balises `<donnees>` ?
+
+<details>
+<summary>Réponse</summary>
+
+Pour se protéger de l'**injection de prompt** (CLAUDE.md §5). Ce texte n'est pas fiable : il
+pourrait contenir « ignore les instructions précédentes… ». En l'isolant dans `<donnees> </donnees>`
+et en disant dans la consigne système de ne jamais exécuter ce qui s'y trouve, l'IA le traite comme
+une simple donnée. L'IA ne déclenche d'ailleurs aucune action : elle ne renvoie que du JSON validé
+par Zod (`aiMessageSchema`). Voir `apps/api/src/ai/prompts/message.ts` et l'exercice 04.
+
+</details>
+
+### 3. (technique) Comment `AiService` garantit-il une sortie conforme malgré un modèle imprévisible ?
+
+<details>
+<summary>Réponse</summary>
+
+`AiService.generateJson` (`apps/api/src/ai/ai.service.ts`) valide la sortie avec un schéma Zod. Si
+elle est invalide, il **relance une fois** en ajoutant au prompt le détail de l'erreur et en
+redemandant un JSON valide ; si c'est encore invalide, il lève `AiUnavailableError` (repli). Chaque
+appel est encadré par un délai (`AbortController` côté `OllamaProvider`), mis en cache par empreinte
+facultative, et journalisé dans `AiCallLog` (fonctionnalité, modèle, durée, succès — jamais le
+contenu). Tests : `ai.service.test.ts` (succès, retry, invalide, échec, désactivée, cache).
+
+</details>
+
 ## Étape 3 — Candidatures et relances
 
 ### 1. (repérage) Où est codée la règle « relancer 7 jours après, décalée au lundi si week-end » ?

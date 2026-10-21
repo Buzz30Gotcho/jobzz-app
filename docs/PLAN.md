@@ -72,7 +72,10 @@ colonnes de filtre/tri.
    week-end → lundi), statuts et « L'entreprise a répondu », modèles de messages, compositeur
    d'envoi (Gmail/Outlook/mailto/copier) avec confirmation, autre canal LinkedIn, envoi libre,
    page Relances (À buzzer + Mes candidatures), tableau de bord (buzz du jour, récap semaine).
-4. Couche IA.
+4. **Couche IA** ✅ : abstraction `AiProvider` + fournisseur Ollama, `AiService` (délais, retry sur
+   sortie invalide, validation Zod, cache, journal `AiCallLog`, repli), prompts versionnés et
+   sécurisés (données non fiables en balises), messages de relance/envoi libre rédigés par l'IA
+   (Premium) avec repli sur modèle, bouton « Rédiger avec l'IA » et indicateur IA côté site.
 5. Offres.
 6. Automatisations.
 7. CV.

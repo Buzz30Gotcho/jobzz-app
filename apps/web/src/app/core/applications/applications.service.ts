@@ -6,6 +6,7 @@ import type {
   CreateFromOfferInput,
   DashboardSummary,
   FreeSendInput,
+  GeneratedMessage,
   PublicApplication,
   RecordFollowUpInput,
   ResponseType,
@@ -47,6 +48,11 @@ export class ApplicationsService {
 
   freeSend(input: FreeSendInput): Promise<PublicApplication> {
     return firstValueFrom(this.http.post<PublicApplication>(`${API}/free-send`, input));
+  }
+
+  /** Rédige un message de relance (IA si Premium et disponible, sinon modèle). */
+  aiMessage(id: string): Promise<GeneratedMessage> {
+    return firstValueFrom(this.http.post<GeneratedMessage>(`${API}/${id}/ai-message`, {}));
   }
 
   recordFollowUp(id: string, input: RecordFollowUpInput): Promise<PublicApplication> {

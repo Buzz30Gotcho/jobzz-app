@@ -24,3 +24,4 @@ mêmes tests. La vraie version tourne déjà dans l'app ; ici, tu t'entraînes s
 | 01 | entitlements | Résolution d'une limite selon le plan + comptage | `packages/shared/src/entitlements.ts` |
 | 02 | suggest-skills | Suggestions de compétences par domaine (insensible aux accents, dédoublonnage) | `packages/shared/src/data/skill-suggestions.ts` |
 | 03 | render-template | Remplacement des variables {xxx} d'un modèle de message | `packages/shared/src/data/message-templates.ts` |
+| 04 | wrap-untrusted | Isoler les données non fiables dans un prompt IA (balises `<donnees>`) | `apps/api/src/ai/prompts/message.ts` |

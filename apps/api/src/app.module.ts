@@ -11,6 +11,7 @@ import { AuthModule } from './auth/auth.module';
 import { ProfileModule } from './profile/profile.module';
 import { ReferentialsModule } from './referentials/referentials.module';
 import { ApplicationsModule } from './applications/applications.module';
+import { AiModule } from './ai/ai.module';
 import { AdminModule } from './admin/admin.module';
 import { HealthModule } from './health/health.module';
 import { JwtAuthGuard } from './auth/jwt-auth.guard';
@@ -39,6 +40,7 @@ import { RolesGuard } from './auth/roles.guard';
     ProfileModule,
     ReferentialsModule,
     ApplicationsModule,
+    AiModule,
     AdminModule,
     HealthModule,
   ],

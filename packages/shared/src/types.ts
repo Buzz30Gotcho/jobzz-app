@@ -60,6 +60,14 @@ export interface PublicProfile {
   completion: ProfileCompletion;
 }
 
+/** Message généré (par l'IA ou par modèle), renvoyé au front. */
+export interface GeneratedMessage {
+  subject: string;
+  body: string;
+  /** Vrai si l'IA a rédigé le message ; faux si on est retombé sur le modèle. */
+  aiGenerated: boolean;
+}
+
 /** Une relance enregistrée. */
 export interface PublicFollowUp {
   id: string;

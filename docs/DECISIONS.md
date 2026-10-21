@@ -3,6 +3,35 @@
 Journal des décisions prises en autonomie (date, décision, raison, alternatives écartées),
 conformément au mode de travail du cahier des charges (CLAUDE.md §0).
 
+## 2026-10-21 — Étape 4 (couche IA)
+
+### Abstraction `AiProvider` + Ollama, injectée par jeton
+- **Décision** : interface `AiProvider` (`apps/api/src/ai/ai-provider.ts`), implémentation
+  `OllamaProvider`, injectée via le jeton `AI_PROVIDER` (`useExisting`). `AiService` enveloppe le
+  fournisseur : délais (`AI.messageTimeoutMs`), **nouvelle tentative** sur sortie non conforme au
+  schéma Zod, cache par empreinte, journal `AiCallLog` (sans contenu), et `AiUnavailableError` pour
+  déclencher le **repli sans IA** chez l'appelant.
+- **Raison** : CLAUDE.md §5 (changer de fournisseur sans toucher au reste ; l'IA n'est jamais
+  indispensable). Ollama appelé en `format: 'json'` ; la validation stricte reste côté Zod.
+
+### IA activée par `AI_ENABLED` (désactivée par défaut en local)
+- **Décision** : `OllamaProvider.isAvailable()` suit `AI_ENABLED`. Le front interroge
+  `GET /ai/status` pour n'afficher le bouton « Rédiger avec l'IA » que si l'IA est disponible.
+- **Raison** : éviter des appels qui échouent quand Ollama n'est pas lancé ; expérience honnête.
+
+### Message IA : quota consommé seulement en cas de succès, repli sur modèle
+- **Décision** : `AiMessagesService.generate` vérifie le droit `ai_message` (Premium), tente l'IA,
+  **ne consomme la limite qu'en cas de succès**, et retombe sur `renderMessage` (modèle) si l'IA
+  est indisponible. La signature de l'utilisateur est ajoutée **par le code** (jamais inventée).
+- **Raison** : CLAUDE.md §2/§4.3/§5 ; ne pas gaspiller un quota sur un échec, toujours fournir un
+  message utilisable.
+
+### Sécurité des prompts : données non fiables isolées
+- **Décision** : le texte non fiable (entreprise, poste, plus tard offres/CV) est placé dans des
+  balises `<donnees> </donnees>` et la consigne système interdit d'exécuter toute instruction qu'il
+  contiendrait (`apps/api/src/ai/prompts/message.ts`). Prompts versionnés et testés.
+- **Raison** : CLAUDE.md §5 (prévention de l'injection de prompt). Exercice `04-wrap-untrusted`.
+
 ## 2026-10-21 — Étape 3 (candidatures et relances)
 
 ### « À buzzer » calculé par requête, pas par tâche planifiée
