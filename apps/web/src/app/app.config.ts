@@ -31,10 +31,14 @@ import {
   Copy,
   PenLine,
   ExternalLink,
+  RefreshCw,
+  Sun,
+  Moon,
 } from 'lucide-angular';
 import { routes } from './app.routes';
 import { authInterceptor } from './core/auth/auth.interceptor';
 import { AuthService } from './core/auth/auth.service';
+import { ThemeService } from './core/theme/theme.service';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -65,8 +69,13 @@ export const appConfig: ApplicationConfig = {
         Copy,
         PenLine,
         ExternalLink,
+        RefreshCw,
+        Sun,
+        Moon,
       }),
     ),
+    // Applique le thème (clair/sombre) avant le premier rendu.
+    provideAppInitializer(() => inject(ThemeService).init()),
     // Tente de restaurer la session (cookie de rafraîchissement) au démarrage.
     provideAppInitializer(() => inject(AuthService).restore()),
   ],

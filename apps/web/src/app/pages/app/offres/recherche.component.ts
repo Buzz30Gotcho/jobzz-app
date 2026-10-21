@@ -14,7 +14,7 @@ import { ModalComponent } from '../../../shared/modal.component';
   standalone: true,
   imports: [FormsModule, LucideAngularModule, OffresTabsComponent, OfferCardComponent, ModalComponent],
   template: `
-    <div class="mx-auto max-w-3xl">
+    <div class="mx-auto w-full max-w-6xl">
       <jz-offres-tabs />
 
       <!-- Filtres -->

@@ -3,6 +3,7 @@ import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/rou
 import { LucideAngularModule } from 'lucide-angular';
 import { AuthService } from '../core/auth/auth.service';
 import { ApplicationsService } from '../core/applications/applications.service';
+import { ThemeService } from '../core/theme/theme.service';
 import { LogoComponent } from '../shared/logo.component';
 
 interface NavEntry {
@@ -56,6 +57,14 @@ interface NavEntry {
           }
           <button
             type="button"
+            (click)="theme.toggle()"
+            class="flex items-center gap-3 rounded-field px-3 py-2 text-sm text-text-muted hover:text-text"
+          >
+            <lucide-icon [name]="theme.theme() === 'dark' ? 'sun' : 'moon'" [size]="16" />
+            {{ theme.theme() === 'dark' ? 'Thème clair' : 'Thème sombre' }}
+          </button>
+          <button
+            type="button"
             (click)="logout()"
             class="flex items-center gap-3 rounded-field px-3 py-2 text-sm text-text-muted hover:text-text"
           >
@@ -99,6 +108,7 @@ interface NavEntry {
 export class AppShellComponent implements OnInit {
   readonly auth = inject(AuthService);
   readonly applications = inject(ApplicationsService);
+  readonly theme = inject(ThemeService);
   private readonly router = inject(Router);
 
   async ngOnInit(): Promise<void> {

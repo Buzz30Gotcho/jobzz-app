@@ -3,6 +3,28 @@
 Journal des décisions prises en autonomie (date, décision, raison, alternatives écartées),
 conformément au mode de travail du cahier des charges (CLAUDE.md §0).
 
+## 2026-10-21 — UX : thème clair par défaut et disposition
+
+### Thème clair par défaut côté client (divergence assumée vs §11)
+- **Décision** : le cahier (§11) prévoyait « thème sombre uniquement en v1 ». Arbitrage produit :
+  l'app cliente passe en **thème clair par défaut** (sombre disponible via une bascule mémorisée,
+  bouton dans le menu). L'espace **admin reste en noir et blanc** en toutes circonstances.
+- **Raison** : la cible est le grand public (étudiants/jeunes diplômés, tous secteurs), pas un
+  public tech ; le clair inspire plus de confiance et reste le plus universellement lisible.
+- **Mise en œuvre** : palettes en variables CSS — `:root` = clair, `.theme-dark` = sombre,
+  `.theme-admin` = B&W complet (son propre fond) ; `ThemeService` applique la classe sur `<html>`,
+  par défaut clair (choix explicite mémorisé respecté). L'accent vert de Jobzz est conservé (assombri
+  à `#0C8A4B` pour rester lisible en texte sur fond clair, WCAG AA).
+- **Alternatives écartées** : suivre `prefers-color-scheme` par défaut (donnait du sombre aux OS en
+  mode sombre, contraire au souhait) ; rester sombre uniquement (trop clivant pour la cible).
+
+### Disposition : contenu centré large (~1150 px)
+- **Décision** : pages de l'app en `mx-auto w-full max-w-6xl` (centré, marges égales). Le passage à
+  une disposition **deux colonnes** (contenu + panneau contextuel) est reporté à l'étape 10
+  (Finitions), quand les pages auront plus de contenu.
+- **Raison** : équilibre visuel avec la barre latérale, point de lecture stable ; éviter le vide des
+  versions étroite-collée-à-gauche et pleine largeur.
+
 ## 2026-10-21 — Étape 5 (offres)
 
 ### Logique métier des offres en fonctions pures partagées

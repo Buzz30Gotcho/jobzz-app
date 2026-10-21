@@ -37,7 +37,7 @@ const RESPONSE_LABELS: Record<ResponseType, string> = {
   standalone: true,
   imports: [FormsModule, LucideAngularModule, RelancesTabsComponent, BuzzDialogComponent, FreeSendDialogComponent],
   template: `
-    <div class="mx-auto max-w-3xl">
+    <div class="mx-auto w-full max-w-6xl">
       <jz-relances-tabs (write)="writing.set(true)" />
 
       <!-- Filtres (une pilule active à la fois) + recherche -->

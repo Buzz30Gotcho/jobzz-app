@@ -15,7 +15,7 @@ import { BuzzDialogComponent } from './relances/buzz-dialog.component';
   standalone: true,
   imports: [RouterLink, LucideAngularModule, BuzzDialogComponent],
   template: `
-    <div class="mx-auto max-w-4xl">
+    <div class="mx-auto w-full max-w-6xl">
       <h1 class="text-2xl font-semibold">{{ greeting() }} <span aria-hidden="true">👋</span></h1>
       <p class="mt-2 text-text-secondary">{{ todayLine() }}</p>
 

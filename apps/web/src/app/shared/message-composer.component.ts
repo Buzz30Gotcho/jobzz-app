@@ -5,6 +5,7 @@ import { buildMailLinks, type FollowUpChannel } from '@jobzz/shared';
 
 export interface ComposedMessage {
   channel: FollowUpChannel;
+  to: string;
   subject: string;
   body: string;
 }
@@ -101,6 +102,6 @@ export class MessageComposerComponent implements OnInit {
   }
 
   confirm(): void {
-    this.sent.emit({ channel: this.channel, subject: this.subject(), body: this.body() });
+    this.sent.emit({ channel: this.channel, to: this.toValue, subject: this.subject(), body: this.body() });
   }
 }

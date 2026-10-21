@@ -12,7 +12,7 @@ import { LogoComponent } from '../shared/logo.component';
   imports: [RouterOutlet, RouterLink, LogoComponent],
   host: { class: 'theme-admin' },
   template: `
-    <div class="flex min-h-full flex-col">
+    <div class="flex min-h-screen flex-col bg-bg text-text">
       <header class="flex items-center justify-between border-b border-border px-4 py-3">
         <div class="flex items-center gap-3">
           <jz-logo />

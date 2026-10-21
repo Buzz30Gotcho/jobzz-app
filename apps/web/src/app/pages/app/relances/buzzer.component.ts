@@ -13,7 +13,7 @@ import { FreeSendDialogComponent } from './free-send-dialog.component';
   standalone: true,
   imports: [RouterLink, LucideAngularModule, RelancesTabsComponent, BuzzDialogComponent, FreeSendDialogComponent],
   template: `
-    <div class="mx-auto max-w-3xl">
+    <div class="mx-auto w-full max-w-6xl">
       <jz-relances-tabs (write)="writing.set(true)" />
 
       <div class="mt-6">
