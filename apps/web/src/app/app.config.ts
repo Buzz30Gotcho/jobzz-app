@@ -36,6 +36,12 @@ import {
   Moon,
   ChevronDown,
   ChevronRight,
+  FileText,
+  Upload,
+  CheckCircle2,
+  AlertTriangle,
+  FileSearch,
+  WandSparkles,
 } from 'lucide-angular';
 import { routes } from './app.routes';
 import { authInterceptor } from './core/auth/auth.interceptor';
@@ -76,6 +82,12 @@ export const appConfig: ApplicationConfig = {
         Moon,
         ChevronDown,
         ChevronRight,
+        FileText,
+        Upload,
+        CheckCircle2,
+        AlertTriangle,
+        FileSearch,
+        WandSparkles,
       }),
     ),
     // Applique le thème (clair/sombre) avant le premier rendu.

@@ -3,6 +3,34 @@
 Journal des décisions prises en autonomie (date, décision, raison, alternatives écartées),
 conformément au mode de travail du cahier des charges (CLAUDE.md §0).
 
+## 2026-10-22 — Étape 7 (CV) — passe 1
+
+### pdf-parse épinglé en v1.1.1
+- **Décision** : extraction du texte PDF avec `pdf-parse@1.1.1`, importé en profondeur
+  (`pdf-parse/lib/pdf-parse.js`) pour éviter le code de debug de l'index, avec une déclaration de
+  type locale (`apps/api/src/cv/pdf-parse.d.ts`).
+- **Alternative écartée** : `pdf-parse@2.x` (installé par défaut), refonte ESM s'appuyant sur
+  `pdfjs-dist` + workers, lourde à bundler sous le build webpack CommonJS de NestJS et API
+  différente non couverte par `@types/pdf-parse`.
+- **Raison** : CLAUDE.md §0 (option la plus simple et cohérente), §7 ; l'API v1 (`pdf(buffer) →
+  { text }`) est stable et éprouvée en CommonJS. **À vérifier** si on migre un jour vers une pile ESM.
+
+### Upload CV en mémoire, fichier jamais écrit sur disque
+- **Décision** : `FileInterceptor` avec `memoryStorage()` ; on vérifie le type réel (octets `%PDF`),
+  la taille (5 Mo), on extrait le texte, on calcule une empreinte SHA-256, puis on ne garde que le
+  **texte** et l'empreinte (`CvDocument`). Le binaire n'est jamais persisté.
+- **Raison** : CLAUDE.md §4.8 et §9 (fichier supprimé dès que possible, données minimales).
+
+### Sous-navigation du Profil et onglets de vue passés en « segmented control »
+- **Décision** : les onglets Relances (À buzzer / Mes candidatures), Offres (Rechercher / Mes
+  automatisations) et Profil (Mes infos / Mon CV / Paramètres) deviennent des *segmented controls*
+  (cadre `bg-surface-raised`, segment actif relevé), au lieu des onglets soulignés des maquettes.
+  Les utilitaires (Aide, Admin, thème, déconnexion) passent du bas de la barre latérale à une
+  **barre en haut à droite** avec un menu compte.
+- **Raison** : retour utilisateur (PO) — les onglets soulignés ne paraissaient pas cliquables et la
+  déconnexion n'était pas là où on l'attend. S'écarte des maquettes, qui restent la référence par
+  défaut (CLAUDE.md §11) ; décision produit assumée.
+
 ## 2026-10-21 — Étape 6 (automatisations) — passe 2 + correctif majeur
 
 ### Bug corrigé : `@UsePipes` au niveau méthode validait aussi `@CurrentUser`/`@Param`

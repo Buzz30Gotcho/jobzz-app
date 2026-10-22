@@ -133,9 +133,7 @@ export const routes: Routes = [
       },
       {
         path: 'profil/cv',
-        loadComponent: () =>
-          import('./pages/app/placeholder.component').then((m) => m.PlaceholderComponent),
-        data: { title: 'Mon CV', subtitle: 'Analyse du CV (étape 7).' },
+        loadComponent: () => import('./pages/app/profil/cv.component').then((m) => m.CvComponent),
       },
       {
         path: 'profil/parametres',

@@ -91,3 +91,9 @@ export const profileUpdateSchema = z.object({
   experienceLevel: z.enum(EXPERIENCE_LEVELS).nullish().transform((v) => v ?? null),
 });
 export type ProfileUpdateInput = z.infer<typeof profileUpdateSchema>;
+
+/** Ajout de compétences au profil (ex. depuis le CV), sans toucher aux autres champs. */
+export const addSkillsSchema = z.object({
+  skills: z.array(z.string().trim().min(1).max(60)).max(60),
+});
+export type AddSkillsInput = z.infer<typeof addSkillsSchema>;

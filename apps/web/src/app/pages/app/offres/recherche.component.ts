@@ -1,9 +1,17 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { LucideAngularModule } from 'lucide-angular';
-import { CONTRACT_TYPES, type PublicOffer, type SearchResult } from '@jobzz/shared';
+import {
+  CONTRACT_TYPES,
+  type CvOfferComparisonResult,
+  type PublicOffer,
+  type SearchResult,
+} from '@jobzz/shared';
 import { OffersService } from '../../../core/offers/offers.service';
 import { ApplicationsService } from '../../../core/applications/applications.service';
+import { CvService } from '../../../core/cv/cv.service';
+import { errorMessage } from '../../auth/error-message';
 import { OffresTabsComponent } from './offres-tabs.component';
 import { OfferCardComponent } from './offer-card.component';
 import { ModalComponent } from '../../../shared/modal.component';
@@ -12,7 +20,14 @@ import { ModalComponent } from '../../../shared/modal.component';
 @Component({
   selector: 'jz-recherche',
   standalone: true,
-  imports: [FormsModule, LucideAngularModule, OffresTabsComponent, OfferCardComponent, ModalComponent],
+  imports: [
+    FormsModule,
+    RouterLink,
+    LucideAngularModule,
+    OffresTabsComponent,
+    OfferCardComponent,
+    ModalComponent,
+  ],
   template: `
     <div class="mx-auto w-full max-w-6xl">
       <jz-offres-tabs />
@@ -72,7 +87,7 @@ import { ModalComponent } from '../../../shared/modal.component';
                 <jz-offer-card
                   [offer]="offer"
                   [rank]="idx + 1"
-                  (open)="detail.set(offer)"
+                  (open)="openDetail(offer)"
                   (apply)="startApply(offer)"
                   (hide)="hideOffer(offer)"
                 />
@@ -101,7 +116,109 @@ import { ModalComponent } from '../../../shared/modal.component';
           <a class="jz-btn-primary" [href]="o.url" target="_blank" rel="noopener">Voir l'offre</a>
           <button type="button" class="jz-btn-ghost" (click)="startApply(o); detail.set(null)">J'ai postulé</button>
         </div>
-        <p class="mt-3 text-xs text-text-muted">« Comparer avec mon CV » arrive à l'étape suivante.</p>
+
+        <!-- Comparaison CV ↔ offre (CLAUDE.md §4.8) -->
+        <div class="mt-5 border-t border-border pt-4">
+          @if (!comparison()) {
+            <button type="button" class="jz-btn-ghost" [disabled]="comparing()" (click)="compare(o)">
+              <lucide-icon name="file-search" [size]="16" />
+              {{ comparing() ? 'Comparaison…' : 'Comparer avec mon CV' }}
+            </button>
+            @if (compareError() === 'NO_CV') {
+              <p class="mt-3 text-sm text-text-secondary">
+                Dépose ton CV pour le comparer à cette offre.
+                <a routerLink="/app/profil/cv" class="text-accent hover:underline">Déposer mon CV</a>
+              </p>
+            } @else if (compareError()) {
+              <p class="mt-3 text-sm text-danger">{{ compareError() }}</p>
+            }
+          } @else {
+            <h3 class="font-display text-sm font-semibold">Ton CV face à cette offre</h3>
+
+            <!-- Ce qui colle -->
+            <p class="mt-3 text-xs font-medium text-text-muted">Ce qui colle</p>
+            @if (inCv().length) {
+              <div class="mt-1 flex flex-wrap gap-2">
+                @for (s of inCv(); track s.skill) {
+                  <span class="rounded-full bg-accent-bg px-2.5 py-1 text-xs text-accent">{{ s.skill }}</span>
+                }
+              </div>
+            } @else {
+              <p class="mt-1 text-sm text-text-secondary">Rien de ton CV ne ressort directement.</p>
+            }
+
+            <!-- Ce qui manque -->
+            <p class="mt-4 text-xs font-medium text-text-muted">Ce qui manque</p>
+            <div class="mt-1 space-y-1">
+              @for (s of toAdd(); track s.skill) {
+                <p class="text-sm">
+                  <span class="text-warning">{{ s.skill }}</span>
+                  <span class="text-text-muted"> — dans ton profil, à ajouter au CV</span>
+                </p>
+              }
+              @for (s of absentSkills(); track s.skill) {
+                <p class="text-sm">
+                  <span class="text-warning">{{ s.skill }}</span>
+                  <span class="text-text-muted"> — absente</span>
+                </p>
+              }
+              @if (comparison()!.rules.missingKeywords.length) {
+                <p class="text-sm text-text-secondary">
+                  Mots de l'offre absents : {{ comparison()!.rules.missingKeywords.join(', ') }}.
+                </p>
+              }
+              @if (!toAdd().length && !absentSkills().length && !comparison()!.rules.missingKeywords.length) {
+                <p class="text-sm text-text-secondary">Rien ne manque, beau match !</p>
+              }
+            </div>
+
+            <!-- Ce que tu peux faire -->
+            @if (comparison()!.rules.advice.length) {
+              <p class="mt-4 text-xs font-medium text-text-muted">Ce que tu peux faire</p>
+              <ul class="mt-1 list-disc space-y-1 pl-5">
+                @for (a of comparison()!.rules.advice; track $index) {
+                  <li class="text-sm text-text-secondary">{{ a }}</li>
+                }
+              </ul>
+            }
+
+            <!-- Conseils IA (Premium, CLAUDE.md §4.8) -->
+            <div class="mt-5 border-t border-border pt-4">
+              <div class="flex items-center justify-between gap-2">
+                <h4 class="font-display text-sm font-semibold">Conseils de l'IA</h4>
+                <span class="rounded-full bg-accent-bg px-2 py-0.5 font-mono text-xs text-accent">✨ IA</span>
+              </div>
+              @if (comparison()!.ai; as a) {
+                <ul class="mt-2 list-disc space-y-1 pl-5">
+                  @for (t of a.tips; track $index) {
+                    <li class="text-sm text-text-secondary">{{ t }}</li>
+                  }
+                </ul>
+                @if (a.rewrites?.length) {
+                  <div class="mt-3 space-y-3">
+                    @for (r of a.rewrites; track $index) {
+                      <div class="rounded-field border border-border p-3">
+                        <p class="text-xs text-text-muted line-through">{{ r.before }}</p>
+                        <p class="mt-1 text-sm">{{ r.after }}</p>
+                        <button type="button" class="mt-2 text-xs text-accent hover:underline" (click)="copy(r.after)">
+                          Copier
+                        </button>
+                      </div>
+                    }
+                  </div>
+                }
+              } @else {
+                <button type="button" class="jz-btn-ghost mt-2" [disabled]="advising()" (click)="compareAiAdvice(o)">
+                  <lucide-icon name="sparkles" [size]="16" />
+                  {{ advising() ? 'Conseils IA…' : 'Conseils IA pour adapter mon CV' }}
+                </button>
+                @if (aiAdviceError()) {
+                  <p class="mt-2 text-sm text-danger">{{ aiAdviceError() }}</p>
+                }
+              }
+            </div>
+          }
+        </div>
       </jz-modal>
     }
 
@@ -126,6 +243,7 @@ import { ModalComponent } from '../../../shared/modal.component';
 export class RechercheComponent implements OnInit {
   private readonly offers = inject(OffersService);
   private readonly applications = inject(ApplicationsService);
+  private readonly cv = inject(CvService);
 
   readonly contractTypes = CONTRACT_TYPES;
   motsCles = '';
@@ -141,6 +259,69 @@ export class RechercheComponent implements OnInit {
   readonly applyNote = signal<string | null>(null);
 
   readonly isDemo = computed(() => this.result()?.offers.some((o) => o.isDemo) ?? false);
+
+  // ── Comparaison CV ↔ offre ──
+  readonly comparing = signal(false);
+  readonly comparison = signal<CvOfferComparisonResult | null>(null);
+  readonly compareError = signal<string | null>(null);
+
+  readonly inCv = computed(
+    () => this.comparison()?.rules.skills.filter((s) => s.presence === 'in_cv') ?? [],
+  );
+  readonly toAdd = computed(
+    () => this.comparison()?.rules.skills.filter((s) => s.presence === 'in_profile_not_cv') ?? [],
+  );
+  readonly absentSkills = computed(
+    () => this.comparison()?.rules.skills.filter((s) => s.presence === 'absent') ?? [],
+  );
+
+  /** Ouvre le détail d'une offre et remet à zéro l'état de comparaison. */
+  openDetail(offer: PublicOffer): void {
+    this.comparison.set(null);
+    this.compareError.set(null);
+    this.comparing.set(false);
+    this.aiAdviceError.set(null);
+    this.advising.set(false);
+    this.detail.set(offer);
+  }
+
+  async compare(offer: PublicOffer): Promise<void> {
+    if (this.comparing()) return;
+    this.compareError.set(null);
+    this.comparing.set(true);
+    try {
+      this.comparison.set(await this.cv.compare(offer.id));
+    } catch (err) {
+      const msg = errorMessage(err, 'Comparaison impossible pour le moment.');
+      this.compareError.set(msg === 'NO_CV' ? 'NO_CV' : msg);
+    } finally {
+      this.comparing.set(false);
+    }
+  }
+
+  // ── Conseils IA pour adapter le CV à l'offre (Premium) ──
+  readonly advising = signal(false);
+  readonly aiAdviceError = signal<string | null>(null);
+
+  async compareAiAdvice(offer: PublicOffer): Promise<void> {
+    if (this.advising()) return;
+    this.aiAdviceError.set(null);
+    this.advising.set(true);
+    try {
+      this.comparison.set(await this.cv.compareAi(offer.id));
+    } catch (err) {
+      const msg = errorMessage(err, 'Conseils IA impossibles pour le moment.');
+      this.aiAdviceError.set(
+        msg === 'AI_UNAVAILABLE' ? 'L’IA est indisponible pour le moment, réessaie plus tard.' : msg,
+      );
+    } finally {
+      this.advising.set(false);
+    }
+  }
+
+  copy(text: string): void {
+    void navigator.clipboard?.writeText(text);
+  }
 
   async ngOnInit(): Promise<void> {
     await this.search();

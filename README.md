@@ -7,7 +7,8 @@ Monorepo TypeScript : **Angular** (front), **NestJS + Prisma + PostgreSQL** (bac
 **partagé** (schémas Zod, configuration métier). La référence produit complète est dans
 [`CLAUDE.md`](./CLAUDE.md) ; le plan technique dans [`docs/PLAN.md`](./docs/PLAN.md).
 
-État : **étape 1 (socle) terminée** — voir le [plan de construction](./docs/PLAN.md#5-étapes-cf-claudemd-14).
+État : **étapes 1 à 7 terminées** (socle, profil & accueil guidé, candidatures & relances, couche
+IA, offres, automatisations, **CV**). Voir le [plan de construction](./docs/PLAN.md#5-étapes-cf-claudemd-14).
 
 ## Prérequis
 
@@ -75,6 +76,18 @@ docker compose --profile ai up -d   # démarre Ollama (ou installe Ollama sur la
 pnpm ai:pull                         # télécharge le modèle (OLLAMA_MODEL)
 # puis AI_ENABLED=true dans .env
 ```
+
+## CV (Profil → Mon CV)
+
+Dépose un **PDF** (5 Mo max) : le texte est extrait (pdf-parse v1), le **fichier n'est jamais écrit
+sur disque** (traité en mémoire) — on ne conserve que le texte et une empreinte. Fonctions :
+
+- **analyse par règles** (gratuite) : score /100 + conseils ✅/⚠️ ;
+- **comparaison à une offre** par règles (dans le détail d'une offre, onglet Offres → Rechercher) :
+  « Ce qui colle / Ce qui manque / Ce que tu peux faire » ;
+- **pré-remplissage du profil** : compétences détectées à ajouter en un clic ;
+- avec l'IA (Premium, si Ollama est lancé) : analyse approfondie, conseils d'adaptation à l'offre,
+  et extraction enrichie (métier, ville, niveau d'études). Sans IA, tout le reste fonctionne.
 
 ## Paiement (Stripe, mode test) — à venir à l'étape 8
 

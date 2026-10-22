@@ -62,6 +62,28 @@ export class ProfileService {
     return this.toPublicProfile(profile, hasCv);
   }
 
+  /**
+   * Ajoute des compétences au profil (ex. pré-remplissage depuis le CV) sans toucher aux autres
+   * champs : fusion dédupliquée (insensible à la casse), plafonnée à 60.
+   */
+  async addSkills(userId: string, skills: string[]): Promise<PublicProfile> {
+    const existing = await this.prisma.profile.findUnique({ where: { userId } });
+    const current = (existing?.skills as string[] | undefined) ?? [];
+    const merged = [...current];
+    for (const raw of skills) {
+      const skill = raw.trim();
+      if (skill && !merged.some((m) => m.toLowerCase() === skill.toLowerCase())) merged.push(skill);
+    }
+    const capped = merged.slice(0, 60);
+    const profile = await this.prisma.profile.upsert({
+      where: { userId },
+      create: { userId, skills: capped } as Prisma.ProfileUncheckedCreateInput,
+      update: { skills: capped },
+    });
+    const hasCv = (await this.prisma.cvDocument.count({ where: { userId } })) > 0;
+    return this.toPublicProfile(profile, hasCv);
+  }
+
   /** Normalise une ligne Prisma (champs JSON) vers la forme publique + complétude. */
   private toPublicProfile(profile: Profile | null, hasCv: boolean): PublicProfile {
     const base: Omit<PublicProfile, 'completion'> = {

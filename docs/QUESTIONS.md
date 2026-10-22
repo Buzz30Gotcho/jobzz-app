@@ -2,6 +2,51 @@
 
 Difficulté progressive. La réponse est cachée : déplie le bloc quand tu veux vérifier.
 
+## Étape 7 — CV
+
+### 1. (décision) Pourquoi le fichier PDF du CV n'est-il jamais écrit sur le disque, et que garde-t-on à la place ?
+
+<details>
+<summary>Réponse</summary>
+
+**RGPD / données minimales** (CLAUDE.md §4.8, §9) : on n'a besoin que du **texte** du CV (pour
+l'analyse et la comparaison aux offres), pas du binaire. Garder le PDF ajouterait une donnée
+personnelle à protéger et à supprimer, sans utilité. Donc l'upload est traité **en mémoire**
+(`FileInterceptor` + `memoryStorage()` dans `cv.controller.ts`), on vérifie le type réel (octets
+`%PDF`), on extrait le texte (`pdf-text.ts`), et on ne persiste que le **texte extrait** et une
+**empreinte SHA-256** (`CvDocument`). Le bouton « Supprimer mon CV » efface tout (texte, analyses,
+comparaisons).
+
+</details>
+
+### 2. (décision) Pourquoi l'ajout de compétences depuis le CV passe-t-il par une route dédiée (`POST /profile/skills`) au lieu de réutiliser la mise à jour du profil (`PUT /profile`) ?
+
+<details>
+<summary>Réponse</summary>
+
+Parce que `PUT /profile` **remplace** le profil entier : le schéma Zod a des valeurs par défaut
+`[]`, donc envoyer seulement `skills` écraserait `jobTargets`, `locations`, etc. La route dédiée
+`addSkills` (`profile.service.ts`) **fusionne** les nouvelles compétences avec les existantes
+(dédupliquées, insensibles à la casse, plafonnées à 60) **sans toucher aux autres champs** — plus
+sûr et plus simple côté front, qui n'a pas à reconstruire tout le profil.
+
+</details>
+
+### 3. (décision / technique) Que se passe-t-il quand on demande une analyse IA du CV alors qu'Ollama est éteint, et en quoi est-ce différent de l'analyse par règles ?
+
+<details>
+<summary>Réponse</summary>
+
+L'IA est **une amélioration, jamais indispensable** (CLAUDE.md §6). `AiService.generateJson` lève
+`AiUnavailableError` si le fournisseur n'est pas disponible ; `CvService.analyzeAi` l'attrape et
+renvoie `ServiceUnavailableException('AI_UNAVAILABLE')`, que le front traduit par « L'IA est
+indisponible pour le moment ». L'**analyse par règles** (`analyzeCvByRules`, fonction pure dans
+`packages/shared`) ne dépend d'aucun service externe : elle reste toujours disponible et constitue
+la valeur gratuite. Même logique pour la comparaison à une offre (règles = socle, IA = bonus
+Premium) et pour l'extraction de profil (compétences par règles toujours, IA en complément).
+
+</details>
+
 ## Étape 6 — Automatisations (passe 2)
 
 ### 1. (repérage) Où décide-t-on d'envoyer (ou non) le mail des offres maintenant ?

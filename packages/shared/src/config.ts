@@ -176,6 +176,8 @@ export const AI = {
   automationAnalysisTimeoutMs: 45_000,
   /** Délai maximum pour générer un message (ms). */
   messageTimeoutMs: 30_000,
+  /** Délai maximum pour analyser un CV ou conseiller sur une offre (ms). */
+  cvTimeoutMs: 30_000,
   /** Confiance minimale pour exclure sur un critère approximatif en mode obligatoire. */
   approximateExclusionConfidence: 0.7,
 } as const;

@@ -27,4 +27,13 @@ export class ProfileService {
     this._profile.set(profile);
     return profile;
   }
+
+  /** Ajoute des compétences (ex. depuis le CV) sans toucher aux autres champs du profil. */
+  async addSkills(skills: string[]): Promise<PublicProfile> {
+    const profile = await firstValueFrom(
+      this.http.post<PublicProfile>(`${API}/skills`, { skills }),
+    );
+    this._profile.set(profile);
+    return profile;
+  }
 }

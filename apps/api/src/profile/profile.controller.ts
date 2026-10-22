@@ -1,5 +1,11 @@
-import { Body, Controller, Get, Put } from '@nestjs/common';
-import { profileUpdateSchema, type ProfileUpdateInput, type PublicProfile } from '@jobzz/shared';
+import { Body, Controller, Get, Post, Put } from '@nestjs/common';
+import {
+  addSkillsSchema,
+  profileUpdateSchema,
+  type AddSkillsInput,
+  type ProfileUpdateInput,
+  type PublicProfile,
+} from '@jobzz/shared';
 import { ZodValidationPipe } from '../common/zod-validation.pipe';
 import { CurrentUser } from '../auth/current-user.decorator';
 import type { RequestUser } from '../auth/jwt-payload';
@@ -21,5 +27,13 @@ export class ProfileController {
     @Body(new ZodValidationPipe(profileUpdateSchema)) body: ProfileUpdateInput,
   ): Promise<PublicProfile> {
     return this.profile.update(user.id, body);
+  }
+
+  @Post('skills')
+  addSkills(
+    @CurrentUser() user: RequestUser,
+    @Body(new ZodValidationPipe(addSkillsSchema)) body: AddSkillsInput,
+  ): Promise<PublicProfile> {
+    return this.profile.addSkills(user.id, body.skills);
   }
 }
