@@ -13,6 +13,7 @@ import {
   type ProfileLocation,
 } from '@jobzz/shared';
 import { AutomationsService } from '../../../../core/automations/automations.service';
+import { errorMessage } from '../../../../pages/auth/error-message';
 import { ProfileService } from '../../../../core/profile/profile.service';
 import { MetierFieldComponent } from '../../../../shared/metier-field.component';
 import { CommuneFieldComponent } from '../../../../shared/commune-field.component';
@@ -259,8 +260,8 @@ export class AutomationFormComponent implements OnInit {
       if (id && id !== 'nouvelle') await this.service.update(id, input);
       else await this.service.create(input);
       await this.router.navigateByUrl('/app/offres/automatisations');
-    } catch {
-      this.error.set('Enregistrement impossible (limite d\'automatisations atteinte ?).');
+    } catch (err) {
+      this.error.set(errorMessage(err, 'Enregistrement impossible. Réessaie.'));
     } finally {
       this.saving.set(false);
     }

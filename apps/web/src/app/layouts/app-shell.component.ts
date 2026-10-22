@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, HostListener, OnInit, computed, inject, signal } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { LucideAngularModule } from 'lucide-angular';
 import { AuthService } from '../core/auth/auth.service';
@@ -39,45 +39,74 @@ interface NavEntry {
             </a>
           }
         </nav>
-
-        <div class="mt-auto flex flex-col gap-1 border-t border-border pt-3">
-          <a
-            routerLink="/app/aide"
-            class="flex items-center gap-3 rounded-field px-3 py-2 text-sm text-text-muted hover:text-text"
-          >
-            <lucide-icon name="help-circle" [size]="16" /> Aide
-          </a>
-          @if (auth.isAdmin()) {
-            <a
-              routerLink="/admin"
-              class="flex items-center gap-3 rounded-field px-3 py-2 text-sm text-text-muted hover:text-text"
-            >
-              <lucide-icon name="shield" [size]="16" /> Admin
-            </a>
-          }
-          <button
-            type="button"
-            (click)="theme.toggle()"
-            class="flex items-center gap-3 rounded-field px-3 py-2 text-sm text-text-muted hover:text-text"
-          >
-            <lucide-icon [name]="theme.theme() === 'dark' ? 'sun' : 'moon'" [size]="16" />
-            {{ theme.theme() === 'dark' ? 'Thème clair' : 'Thème sombre' }}
-          </button>
-          <button
-            type="button"
-            (click)="logout()"
-            class="flex items-center gap-3 rounded-field px-3 py-2 text-sm text-text-muted hover:text-text"
-          >
-            <lucide-icon name="log-out" [size]="16" /> Déconnexion
-          </button>
-        </div>
       </aside>
 
       <!-- Contenu -->
       <div class="flex min-w-0 flex-1 flex-col">
-        <header class="flex items-center justify-between border-b border-border px-4 py-3 md:hidden">
-          <jz-logo />
-          <a routerLink="/app/aide" aria-label="Aide"><lucide-icon name="help-circle" [size]="20" /></a>
+        <header class="flex items-center justify-between gap-3 border-b border-border px-4 py-3 md:px-8">
+          <!-- Logo seulement sur mobile (la barre latérale le porte sur ordinateur). -->
+          <jz-logo class="md:hidden" />
+          <div class="hidden md:block"></div>
+
+          <div class="flex items-center gap-1">
+            <a
+              routerLink="/app/aide"
+              aria-label="Aide"
+              class="flex h-9 w-9 items-center justify-center rounded-field text-text-muted transition-colors hover:bg-surface-raised hover:text-text"
+            >
+              <lucide-icon name="help-circle" [size]="18" />
+            </a>
+            <button
+              type="button"
+              (click)="theme.toggle()"
+              [attr.aria-label]="theme.theme() === 'dark' ? 'Passer en thème clair' : 'Passer en thème sombre'"
+              class="flex h-9 w-9 items-center justify-center rounded-field text-text-muted transition-colors hover:bg-surface-raised hover:text-text"
+            >
+              <lucide-icon [name]="theme.theme() === 'dark' ? 'sun' : 'moon'" [size]="18" />
+            </button>
+
+            <!-- Menu compte -->
+            <div class="relative">
+              <button
+                type="button"
+                (click)="menuOpen.set(!menuOpen())"
+                aria-haspopup="menu"
+                [attr.aria-expanded]="menuOpen()"
+                aria-label="Mon compte"
+                class="flex h-9 w-9 items-center justify-center rounded-full bg-surface-raised font-mono text-sm font-medium text-text transition-colors hover:bg-border"
+              >
+                {{ initial() }}
+              </button>
+              @if (menuOpen()) {
+                <!-- Fond transparent : un clic en dehors ferme le menu. -->
+                <div class="fixed inset-0 z-20" (click)="menuOpen.set(false)"></div>
+                <div
+                  role="menu"
+                  class="absolute right-0 z-30 mt-2 w-56 rounded-card border border-border bg-surface p-1 shadow-lg"
+                >
+                  <p class="truncate px-3 py-2 text-xs text-text-muted">{{ auth.user()?.email }}</p>
+                  @if (auth.isAdmin()) {
+                    <a
+                      role="menuitem"
+                      routerLink="/admin"
+                      (click)="menuOpen.set(false)"
+                      class="flex items-center gap-3 rounded-field px-3 py-2 text-sm text-text-secondary transition-colors hover:bg-surface-raised hover:text-text"
+                    >
+                      <lucide-icon name="shield" [size]="16" /> Admin
+                    </a>
+                  }
+                  <button
+                    role="menuitem"
+                    type="button"
+                    (click)="logout()"
+                    class="flex w-full items-center gap-3 rounded-field px-3 py-2 text-sm text-text-secondary transition-colors hover:bg-surface-raised hover:text-text"
+                  >
+                    <lucide-icon name="log-out" [size]="16" /> Déconnexion
+                  </button>
+                </div>
+              }
+            </div>
+          </div>
         </header>
 
         <main class="flex-1 px-4 py-6 pb-24 md:px-8 md:pb-10">
@@ -111,6 +140,20 @@ export class AppShellComponent implements OnInit {
   readonly theme = inject(ThemeService);
   private readonly router = inject(Router);
 
+  /** Menu compte (haut à droite) ouvert ou non. */
+  readonly menuOpen = signal(false);
+
+  /** Initiale affichée dans le bouton compte : prénom si connu, sinon email. */
+  readonly initial = computed(() => {
+    const u = this.auth.user();
+    return (u?.firstName || u?.email || '?').charAt(0).toUpperCase();
+  });
+
+  @HostListener('document:keydown.escape')
+  closeMenu(): void {
+    this.menuOpen.set(false);
+  }
+
   async ngOnInit(): Promise<void> {
     // Alimente le badge « buzz du jour » du menu (ignore les erreurs réseau).
     await this.applications.due().catch(() => []);
@@ -124,6 +167,7 @@ export class AppShellComponent implements OnInit {
   ];
 
   async logout(): Promise<void> {
+    this.menuOpen.set(false);
     await this.auth.logout();
     await this.router.navigate(['/']);
   }

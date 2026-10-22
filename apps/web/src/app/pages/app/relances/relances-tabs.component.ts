@@ -16,12 +16,12 @@ import { ApplicationsService } from '../../../core/applications/applications.ser
       </button>
     </div>
 
-    <nav class="mt-4 flex gap-2 border-b border-border" aria-label="Onglets des relances">
+    <nav class="mt-4 inline-flex rounded-field bg-surface-raised p-1" aria-label="Onglets des relances">
       <a
         routerLink="/app/relances"
-        routerLinkActive="border-accent text-text"
+        routerLinkActive="bg-surface text-text shadow-sm"
         [routerLinkActiveOptions]="{ exact: true }"
-        class="-mb-px flex items-center gap-2 border-b-2 border-transparent px-3 py-2 text-sm text-text-secondary hover:text-text"
+        class="flex items-center gap-2 rounded-[6px] px-4 py-1.5 text-sm font-medium text-text-secondary transition-colors hover:text-text"
       >
         À buzzer
         @if (applications.dueCount() > 0) {
@@ -30,8 +30,8 @@ import { ApplicationsService } from '../../../core/applications/applications.ser
       </a>
       <a
         routerLink="/app/relances/candidatures"
-        routerLinkActive="border-accent text-text"
-        class="-mb-px border-b-2 border-transparent px-3 py-2 text-sm text-text-secondary hover:text-text"
+        routerLinkActive="bg-surface text-text shadow-sm"
+        class="rounded-[6px] px-4 py-1.5 text-sm font-medium text-text-secondary transition-colors hover:text-text"
         >Mes candidatures</a
       >
     </nav>

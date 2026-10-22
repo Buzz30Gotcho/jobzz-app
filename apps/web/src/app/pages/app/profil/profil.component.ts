@@ -16,6 +16,7 @@ import {
   type RemotePreference,
 } from '@jobzz/shared';
 import { ProfileService } from '../../../core/profile/profile.service';
+import { ProfilTabsComponent } from './profil-tabs.component';
 import { MetierFieldComponent } from '../../../shared/metier-field.component';
 import { CommuneFieldComponent } from '../../../shared/commune-field.component';
 import { TagsFieldComponent } from '../../../shared/tags-field.component';
@@ -47,6 +48,7 @@ const EXPERIENCE_LABELS: Record<ExperienceLevel, string> = {
     RouterLink,
     RouterLinkActive,
     LucideAngularModule,
+    ProfilTabsComponent,
     MetierFieldComponent,
     CommuneFieldComponent,
     TagsFieldComponent,

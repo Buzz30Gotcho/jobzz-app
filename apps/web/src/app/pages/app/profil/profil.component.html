@@ -2,27 +2,7 @@
   <h1 class="text-2xl font-semibold">Profil</h1>
 
   <!-- Sous-navigation du Profil (CLAUDE.md §11). -->
-  <nav class="mt-4 flex gap-2 border-b border-border" aria-label="Sections du profil">
-    <a
-      routerLink="/app/profil"
-      routerLinkActive="border-accent text-text"
-      [routerLinkActiveOptions]="{ exact: true }"
-      class="-mb-px border-b-2 border-transparent px-3 py-2 text-sm text-text-secondary hover:text-text"
-      >Mes infos</a
-    >
-    <a
-      routerLink="/app/profil/cv"
-      routerLinkActive="border-accent text-text"
-      class="-mb-px border-b-2 border-transparent px-3 py-2 text-sm text-text-secondary hover:text-text"
-      >Mon CV</a
-    >
-    <a
-      routerLink="/app/profil/parametres"
-      routerLinkActive="border-accent text-text"
-      class="-mb-px border-b-2 border-transparent px-3 py-2 text-sm text-text-secondary hover:text-text"
-      >Paramètres</a
-    >
-  </nav>
+  <jz-profil-tabs />
 
   @if (loading()) {
     <div class="mt-8 space-y-4">

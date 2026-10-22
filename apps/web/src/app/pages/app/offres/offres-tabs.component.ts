@@ -11,18 +11,18 @@ import { LucideAngularModule } from 'lucide-angular';
     <div class="flex items-center justify-between">
       <h1 class="text-2xl font-semibold">Offres</h1>
     </div>
-    <nav class="mt-4 flex gap-2 border-b border-border" aria-label="Onglets des offres">
+    <nav class="mt-4 inline-flex rounded-field bg-surface-raised p-1" aria-label="Onglets des offres">
       <a
         routerLink="/app/offres"
-        routerLinkActive="border-accent text-text"
+        routerLinkActive="bg-surface text-text shadow-sm"
         [routerLinkActiveOptions]="{ exact: true }"
-        class="-mb-px border-b-2 border-transparent px-3 py-2 text-sm text-text-secondary hover:text-text"
+        class="rounded-[6px] px-4 py-1.5 text-sm font-medium text-text-secondary transition-colors hover:text-text"
         >Rechercher</a
       >
       <a
         routerLink="/app/offres/automatisations"
-        routerLinkActive="border-accent text-text"
-        class="-mb-px border-b-2 border-transparent px-3 py-2 text-sm text-text-secondary hover:text-text"
+        routerLinkActive="bg-surface text-text shadow-sm"
+        class="rounded-[6px] px-4 py-1.5 text-sm font-medium text-text-secondary transition-colors hover:text-text"
         >Mes automatisations</a
       >
     </nav>
