@@ -55,3 +55,50 @@ export function resetPasswordMail(appName: string, to: string, url: string): Mai
     text: `Réinitialise ton mot de passe : ${url}\n\nCe lien est valable 1 heure.`,
   };
 }
+
+/** Échec de paiement d'un abonnement : on invite à mettre à jour la carte via le portail Stripe. */
+export function paymentFailedMail(appName: string, to: string, portalUrl: string): MailMessage {
+  return {
+    to,
+    subject: `${appName} — problème avec ton paiement`,
+    html: layout(
+      appName,
+      'Ton paiement n’a pas abouti',
+      `<p>Le paiement de ton abonnement Premium a échoué. Pas d'inquiétude : nous réessaierons
+        automatiquement dans les prochains jours.</p>
+       <p>Pour éviter toute coupure, tu peux mettre à jour ta carte dès maintenant :</p>
+       <p style="margin:24px 0">${button(portalUrl, 'Gérer mon abonnement')}</p>
+       <p style="color:#A3ADA7;font-size:13px">Tes données et ton accès restent intacts pendant les nouvelles tentatives.</p>`,
+    ),
+    text: `Le paiement de ton abonnement Premium a échoué. Nous réessaierons automatiquement.\n\nMets à jour ta carte : ${portalUrl}`,
+  };
+}
+
+/** Préavis avant la fin d'un Pass 3 mois (sans renouvellement automatique). */
+export function passEndingMail(
+  appName: string,
+  to: string,
+  endsAt: Date,
+  pricingUrl: string,
+): MailMessage {
+  const date = endsAt.toLocaleDateString('fr-FR', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+    timeZone: 'Europe/Paris',
+  });
+  return {
+    to,
+    subject: `${appName} — ton Pass Premium se termine bientôt`,
+    html: layout(
+      appName,
+      'Ton Pass 3 mois se termine bientôt',
+      `<p>Ton Pass Premium prend fin le <strong>${date}</strong>. Il ne se renouvelle pas
+        automatiquement.</p>
+       <p>Si ta recherche continue, tu peux reprendre un Premium quand tu veux :</p>
+       <p style="margin:24px 0">${button(pricingUrl, 'Voir les offres')}</p>
+       <p style="color:#A3ADA7;font-size:13px">Tes données restent intactes : repasser en gratuit ne supprime rien.</p>`,
+    ),
+    text: `Ton Pass Premium se termine le ${date} (sans renouvellement automatique).\n\nReprendre un Premium : ${pricingUrl}`,
+  };
+}

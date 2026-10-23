@@ -7,7 +7,9 @@ import { AppModule } from './app.module';
 import { AppConfigService } from './config/app-config.service';
 
 async function bootstrap(): Promise<void> {
-  const app = await NestFactory.create(AppModule, { bufferLogs: true });
+  // `rawBody: true` conserve le corps brut sur `req.rawBody` : nécessaire pour vérifier la
+  // signature du webhook Stripe (CLAUDE.md §2.1).
+  const app = await NestFactory.create(AppModule, { bufferLogs: true, rawBody: true });
   app.useLogger(app.get(PinoLogger));
 
   const config = app.get(AppConfigService);

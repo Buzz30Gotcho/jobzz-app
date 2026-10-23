@@ -1,5 +1,6 @@
 export * from './config';
 export * from './constants';
+export * from './billing';
 export * from './entitlements';
 export * from './normalize-email';
 export * from './profile-completion';

@@ -139,7 +139,17 @@ export const routes: Routes = [
         path: 'profil/parametres',
         loadComponent: () =>
           import('./pages/app/placeholder.component').then((m) => m.PlaceholderComponent),
-        data: { title: 'Paramètres', subtitle: 'Mail des offres, abonnement, mot de passe, Mes données (étapes 8–9).' },
+        data: { title: 'Paramètres', subtitle: 'Mail des offres, abonnement, mot de passe, Mes données (étape 9).' },
+      },
+      {
+        path: 'profil/abonnement',
+        loadComponent: () =>
+          import('./pages/app/profil/abonnement.component').then((m) => m.AbonnementComponent),
+      },
+      {
+        path: 'premium/bienvenue',
+        loadComponent: () =>
+          import('./pages/app/premium/bienvenue.component').then((m) => m.PremiumBienvenueComponent),
       },
       {
         path: 'aide',

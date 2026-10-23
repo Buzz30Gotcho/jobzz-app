@@ -16,6 +16,7 @@ import { SourcesModule } from './sources/sources.module';
 import { OffersModule } from './offers/offers.module';
 import { CvModule } from './cv/cv.module';
 import { AutomationsModule } from './automations/automations.module';
+import { BillingModule } from './billing/billing.module';
 import { AdminModule } from './admin/admin.module';
 import { HealthModule } from './health/health.module';
 import { JwtAuthGuard } from './auth/jwt-auth.guard';
@@ -49,6 +50,7 @@ import { RolesGuard } from './auth/roles.guard';
     OffersModule,
     CvModule,
     AutomationsModule,
+    BillingModule,
     AdminModule,
     HealthModule,
   ],

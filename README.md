@@ -89,13 +89,46 @@ sur disque** (traité en mémoire) — on ne conserve que le texte et une emprei
 - avec l'IA (Premium, si Ollama est lancé) : analyse approfondie, conseils d'adaptation à l'offre,
   et extraction enrichie (métier, ville, niveau d'études). Sans IA, tout le reste fonctionne.
 
-## Paiement (Stripe, mode test) — à venir à l'étape 8
+## Paiement (Stripe, mode test)
 
-Le code du paiement (Stripe Checkout, portail client, webhooks) sera ajouté à l'étape 8, en
-**mode test uniquement** en local. L'application refuse de démarrer si une clé réelle
-(`sk_live_…`) est détectée hors production. Réception des webhooks en local avec la Stripe
-CLI : `stripe listen --forward-to localhost:3000/api/webhooks/stripe`. Cartes de test :
-`4242 4242 4242 4242` (succès), etc. Détails complets à l'étape 8.
+Le paiement se fait **uniquement sur les pages de Stripe** : Jobzz ne voit jamais de numéro de
+carte. En local, **mode test uniquement** — l'application refuse de démarrer si une clé réelle
+(`sk_live_…`) est détectée hors production.
+
+**1. Clés de test** (tableau de bord Stripe → Développeurs → Clés API) dans `.env` :
+
+```
+STRIPE_SECRET_KEY=sk_test_…
+STRIPE_PUBLISHABLE_KEY=pk_test_…
+STRIPE_PRICE_MONTHLY=price_…          # Produit « Premium mensuel » (9,99 €/mois)
+STRIPE_PRICE_LAUNCH=price_…           # Produit « Offre de lancement » (6 €/mois)
+STRIPE_PRICE_PASS_3_MONTHS=price_…    # Produit « Pass 3 mois » (24,99 €, paiement unique)
+PLAN_ENFORCEMENT=true                 # pour voir les pages Tarifs / Mon abonnement
+```
+
+Crée les 3 produits/prix dans Stripe (mode test) : deux prix **récurrents mensuels** (mensuel,
+lancement) et un prix **unique** (Pass 3 mois). Colle leurs `price_…` ci-dessus.
+
+**2. Webhooks en local** (source de vérité du paiement) avec la Stripe CLI :
+
+```bash
+stripe login
+stripe listen --forward-to localhost:3000/api/webhooks/stripe
+# → copie le « whsec_… » affiché dans STRIPE_WEBHOOK_SECRET, puis redémarre l'API
+```
+
+**3. Payer** : `/tarifs` → « Passer Premium » → page Stripe. Cartes de test :
+
+- `4242 4242 4242 4242` — paiement accepté (date future, CVC quelconque) ;
+- `4000 0000 0000 9995` — paiement refusé ;
+- `4000 0025 0000 3155` — authentification 3D Secure.
+
+Le compte devient Premium **à la réception du webhook** (page « Bienvenue en Premium » qui
+patiente). « Mon abonnement » (Profil → Paramètres) ouvre le **portail client Stripe**
+(changer de carte, factures, résilier).
+
+Si les clés Stripe sont absentes : les boutons affichent « Paiement non configuré » et le reste
+de l'app fonctionne normalement.
 
 ## Structure
 
