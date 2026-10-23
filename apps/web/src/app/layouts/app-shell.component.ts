@@ -82,9 +82,51 @@ interface NavEntry {
                 <div class="fixed inset-0 z-20" (click)="menuOpen.set(false)"></div>
                 <div
                   role="menu"
-                  class="absolute right-0 z-30 mt-2 w-56 rounded-card border border-border bg-surface p-1 shadow-lg"
+                  class="absolute right-0 z-30 mt-2 w-64 rounded-card border border-border bg-surface p-1 shadow-lg"
                 >
-                  <p class="truncate px-3 py-2 text-xs text-text-muted">{{ auth.user()?.email }}</p>
+                  <!-- En-tête : identité visible en un clic (nom, email, plan, vérification). -->
+                  <div class="flex items-center gap-3 px-3 py-3">
+                    <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-surface-raised font-mono text-sm font-medium text-text">
+                      {{ initial() }}
+                    </span>
+                    <div class="min-w-0">
+                      @if (auth.user()?.firstName) {
+                        <p class="truncate text-sm font-medium text-text">{{ auth.user()?.firstName }}</p>
+                      }
+                      <p class="truncate text-xs text-text-muted">{{ auth.user()?.email }}</p>
+                      <div class="mt-1 flex items-center gap-2">
+                        @if (auth.user()?.plan === 'premium') {
+                          <span class="rounded-full bg-accent-bg px-2 py-0.5 font-mono text-[11px] text-accent">Premium</span>
+                        }
+                        @if (auth.user()?.emailVerified) {
+                          <span class="flex items-center gap-0.5 text-[11px] text-text-muted">
+                            <lucide-icon name="check" [size]="12" /> Vérifié
+                          </span>
+                        } @else {
+                          <span class="text-[11px] text-warning">Email à confirmer</span>
+                        }
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="my-1 border-t border-border"></div>
+
+                  <a
+                    role="menuitem"
+                    routerLink="/app/profil"
+                    (click)="menuOpen.set(false)"
+                    class="flex items-center gap-3 rounded-field px-3 py-2 text-sm text-text-secondary transition-colors hover:bg-surface-raised hover:text-text"
+                  >
+                    <lucide-icon name="user" [size]="16" /> Mon profil
+                  </a>
+                  <a
+                    role="menuitem"
+                    routerLink="/app/profil/parametres"
+                    (click)="menuOpen.set(false)"
+                    class="flex items-center gap-3 rounded-field px-3 py-2 text-sm text-text-secondary transition-colors hover:bg-surface-raised hover:text-text"
+                  >
+                    <lucide-icon name="settings" [size]="16" /> Paramètres
+                  </a>
                   @if (auth.isAdmin()) {
                     <a
                       role="menuitem"
@@ -95,6 +137,9 @@ interface NavEntry {
                       <lucide-icon name="shield" [size]="16" /> Admin
                     </a>
                   }
+
+                  <div class="my-1 border-t border-border"></div>
+
                   <button
                     role="menuitem"
                     type="button"
