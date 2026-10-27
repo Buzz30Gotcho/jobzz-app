@@ -121,7 +121,49 @@ const RESPONSE_LABELS: Record<ResponseType, string> = {
     @if (writing()) {
       <jz-free-send-dialog (done)="afterWrite()" (closed)="writing.set(false)" />
     }
+
+    <!-- Célébration (entretien) ou message encourageant (refus), transitoire. -->
+    @if (feedback(); as f) {
+      <div class="pointer-events-none fixed inset-x-0 bottom-24 z-40 flex justify-center px-4 md:bottom-10" aria-live="polite">
+        <div
+          class="jz-pop rounded-card border px-5 py-3 text-center text-sm shadow-lg"
+          [class.border-accent]="f === 'entretien'"
+          [class.bg-accent-bg]="f === 'entretien'"
+          [class.text-accent]="f === 'entretien'"
+          [class.border-border]="f === 'refus'"
+          [class.bg-surface-raised]="f === 'refus'"
+        >
+          @if (f === 'entretien') {
+            🎉 Un entretien, bravo ! On croise les doigts pour toi.
+          } @else {
+            Un refus, c'est une case de moins à cocher. Prochaine !
+          }
+        </div>
+      </div>
+    }
   `,
+  styles: [
+    `
+      .jz-pop {
+        animation: jz-pop 250ms ease-out;
+      }
+      @keyframes jz-pop {
+        from {
+          transform: translateY(8px) scale(0.98);
+          opacity: 0;
+        }
+        to {
+          transform: translateY(0) scale(1);
+          opacity: 1;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .jz-pop {
+          animation: none;
+        }
+      }
+    `,
+  ],
 })
 export class CandidaturesComponent implements OnInit {
   private readonly applications = inject(ApplicationsService);
@@ -136,9 +178,12 @@ export class CandidaturesComponent implements OnInit {
   readonly filter = signal<ApplicationFilter>('toutes');
   readonly buzzing = signal<PublicApplication | null>(null);
   readonly writing = signal(false);
+  /** Retour transitoire après une réponse : célébration (entretien) ou encouragement (refus). */
+  readonly feedback = signal<ResponseType | null>(null);
   search = '';
 
   private searchDebounce?: ReturnType<typeof setTimeout>;
+  private feedbackTimer?: ReturnType<typeof setTimeout>;
 
   async ngOnInit(): Promise<void> {
     await this.reload();
@@ -179,6 +224,11 @@ export class CandidaturesComponent implements OnInit {
 
   async respond(app: PublicApplication, responseType: ResponseType): Promise<void> {
     await this.applications.respond(app.id, responseType);
+    if (responseType === 'entretien' || responseType === 'refus') {
+      this.feedback.set(responseType);
+      clearTimeout(this.feedbackTimer);
+      this.feedbackTimer = setTimeout(() => this.feedback.set(null), 5000);
+    }
     await this.afterChange();
   }
 
