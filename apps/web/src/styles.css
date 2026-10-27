@@ -20,10 +20,10 @@
   --jz-border: #dce3df;
   --jz-text: #0f1613;
   --jz-text-secondary: #566159;
-  --jz-text-muted: #88938c;
-  --jz-accent: #0aa24e; /* vert vif foncé (émeraude) : identité Jobzz sur fond clair */
-  --jz-accent-hover: #088a41;
-  --jz-accent-bg: #e2f4e9; /* vert très clair : fond de pastilles */
+  --jz-text-muted: #68726b; /* foncé pour le contraste WCAG AA (4,68:1 sur le fond clair) */
+  --jz-accent: #08833d; /* vert vif foncé (émeraude), conforme AA : bouton blanc/vert 4,86:1, texte vert 4,55:1 */
+  --jz-accent-hover: #067330;
+  --jz-accent-bg: #f0faf5; /* vert très clair : fond de pastilles (texte accent 4,56:1, AA) */
   --jz-accent-ink: #ffffff; /* texte blanc sur bouton vert */
   --jz-danger: #d12d32;
   --jz-warning: #b45309;

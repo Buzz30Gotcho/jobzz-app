@@ -9,6 +9,29 @@ import type {
 } from '@jobzz/shared';
 
 const API = '/api/auth';
+/**
+ * Indice (non sensible) de session dans localStorage : il ne contient aucun jeton, seulement
+ * le fait qu'une session a existé. Il évite d'appeler `/auth/refresh` au démarrage pour un
+ * visiteur anonyme (sinon le navigateur journalise un 401 inutile sur chaque page publique).
+ */
+const SESSION_HINT = 'jz_has_session';
+
+function setSessionHint(active: boolean): void {
+  try {
+    if (active) localStorage.setItem(SESSION_HINT, '1');
+    else localStorage.removeItem(SESSION_HINT);
+  } catch {
+    // localStorage indisponible : on ignore (le refresh reste simplement tenté).
+  }
+}
+
+function hasSessionHint(): boolean {
+  try {
+    return localStorage.getItem(SESSION_HINT) === '1';
+  } catch {
+    return true;
+  }
+}
 
 /**
  * Service d'authentification à base de signals.
@@ -45,6 +68,7 @@ export class AuthService {
     } finally {
       this.accessToken = null;
       this._user.set(null);
+      setSessionHint(false);
     }
   }
 
@@ -56,13 +80,15 @@ export class AuthService {
     } catch {
       this.accessToken = null;
       this._user.set(null);
+      setSessionHint(false);
       return false;
     }
   }
 
   /** Appelé au démarrage de l'app (APP_INITIALIZER). */
   async restore(): Promise<void> {
-    await this.refresh();
+    // Pas de session connue → on n'appelle pas /auth/refresh (évite un 401 sur les pages publiques).
+    if (hasSessionHint()) await this.refresh();
     this._ready.set(true);
   }
 
@@ -100,5 +126,6 @@ export class AuthService {
   private apply(res: AuthResponse): void {
     this.accessToken = res.accessToken;
     this._user.set(res.user);
+    setSessionHint(true);
   }
 }

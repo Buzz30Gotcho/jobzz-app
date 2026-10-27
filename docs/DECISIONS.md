@@ -5,6 +5,24 @@ conformément au mode de travail du cahier des charges (CLAUDE.md §0).
 
 ## 2026-10-27 — Étape 10 (finitions)
 
+### Audit Lighthouse et accessibilité (mobile, build de prod)
+- **Mesure représentative** : build de prod servi avec **gzip + cache** (petit serveur Node
+  `/tmp`), comme tout hébergeur réel. Sans compression, la perf tombait à 75 (artefact serveur) ;
+  avec, 89 → 90 après correctifs. Accessibilité 100, bonnes pratiques 100, SEO 91.
+- **Contraste WCAG AA (§11)** : le vert d'identité du thème clair `#0AA24E` échouait (bouton
+  blanc/vert 3,34:1, texte vert 3,13:1). **Décision (choix utilisateur)** : foncer l'accent à
+  `#08833D` (bouton 4,86:1, texte 4,55:1), fond de pastille à `#F0FAF5` (4,56:1), texte discret à
+  `#68726B` (4,68:1). Un seul token d'accent corrige bouton **et** texte vert ; teinte quasi
+  identique à l'œil. **Alternative écartée** : garder `#0AA24E` + texte sombre sur bouton (ne
+  réglait pas le texte vert sur fond clair sans un 2e token).
+- **Erreurs console (bonnes pratiques)** : `/auth/refresh` au démarrage renvoyait 401 pour un
+  visiteur anonyme (journalisé par le navigateur). **Décision** : un **indice de session** non
+  sensible dans `localStorage` (`jz_has_session`, posé à la connexion, retiré à la déconnexion /
+  au 401) ; au boot, on n'appelle `refresh()` que si l'indice existe. Aucun jeton stocké.
+- **Perf bornée par le bootstrap SPA** (render delay du `<h1>` LCP). Cible ≥ 90 atteinte ; le
+  prérendu/SSR des pages publiques reste une piste de déploiement (pas de SSR dans la stack v1).
+
+
 ### Palette de commandes Ctrl/Cmd+K
 - **Décision** : composant maison `CommandPaletteComponent` (overlay signals, listener global
   `keydown`), monté dans le shell de l'application. Navigation + 3 actions principales ; l'action
