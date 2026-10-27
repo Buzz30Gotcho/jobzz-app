@@ -1,5 +1,5 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { LucideAngularModule } from 'lucide-angular';
 import type { AlertSuggestion, AutomationPreview, PublicAutomation } from '@jobzz/shared';
 import { AutomationsService } from '../../../../core/automations/automations.service';
@@ -129,6 +129,7 @@ import { OffresTabsComponent } from '../offres-tabs.component';
 })
 export class AutomationListComponent implements OnInit {
   private readonly service = inject(AutomationsService);
+  private readonly router = inject(Router);
 
   readonly automations = signal<PublicAutomation[]>([]);
   readonly alerts = signal<AlertSuggestion[]>([]);
@@ -191,7 +192,8 @@ export class AutomationListComponent implements OnInit {
 
   async duplicate(a: PublicAutomation): Promise<void> {
     const copy = await this.service.duplicate(a.id);
-    this.automations.update((list) => [...list, copy]);
+    // On ouvre directement la copie pour l'ajuster (c'est tout l'intérêt de dupliquer).
+    await this.router.navigate(['/app/offres/automatisations', copy.id]);
   }
 
   async remove(a: PublicAutomation): Promise<void> {
