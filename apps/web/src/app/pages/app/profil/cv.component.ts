@@ -143,34 +143,42 @@ import { errorMessage } from '../../auth/error-message';
               }
             } @else {
               @if (extract()!.skills.length) {
-                <p class="mt-3 text-xs font-medium text-text-muted">
-                  Compétences détectées (clique pour (dé)sélectionner)
-                </p>
-                <div class="mt-1 flex flex-wrap gap-2">
-                  @for (s of extract()!.skills; track s) {
+                @if (pendingSkills().length) {
+                  <p class="mt-3 text-xs font-medium text-text-muted">
+                    Compétences repérées dans ton CV — ajoute à ton profil celles que tu veux garder :
+                  </p>
+                  <div class="mt-1 flex flex-wrap gap-2">
+                    @for (s of pendingSkills(); track s) {
+                      <button
+                        type="button"
+                        (click)="toggleSkill(s)"
+                        [class]="
+                          isSelected(s)
+                            ? 'rounded-full bg-accent px-3 py-1 text-xs font-medium text-accent-ink'
+                            : 'rounded-full border border-border px-3 py-1 text-xs text-text-secondary hover:text-text'
+                        "
+                      >
+                        {{ s }}
+                      </button>
+                    }
+                  </div>
+                  @if (selectedSkills().length) {
                     <button
                       type="button"
-                      (click)="toggleSkill(s)"
-                      [class]="
-                        isSelected(s)
-                          ? 'rounded-full bg-accent px-3 py-1 text-xs font-medium text-accent-ink'
-                          : 'rounded-full border border-border px-3 py-1 text-xs text-text-secondary hover:text-text'
-                      "
+                      class="jz-btn-primary mt-3"
+                      [disabled]="addingSkills()"
+                      (click)="addSkills()"
                     >
-                      {{ s }}
+                      {{ addingSkills() ? 'Ajout…' : 'Ajouter ' + selectedSkills().length + ' compétence(s) à mon profil' }}
                     </button>
                   }
-                </div>
-                <button
-                  type="button"
-                  class="jz-btn-primary mt-3"
-                  [disabled]="!selectedSkills().length || addingSkills()"
-                  (click)="addSkills()"
-                >
-                  {{ addingSkills() ? 'Ajout…' : 'Ajouter ' + selectedSkills().length + ' compétence(s) à mon profil' }}
-                </button>
+                }
                 @if (addedNote()) {
-                  <p class="mt-2 text-sm text-accent">{{ addedNote() }}</p>
+                  <div class="mt-3 flex flex-wrap items-center gap-2 rounded-field bg-accent-bg px-3 py-2 text-sm text-accent">
+                    <lucide-icon name="check-circle-2" [size]="16" />
+                    <span>{{ addedNote() }}</span>
+                    <a routerLink="/app/profil" class="font-medium underline hover:no-underline">Voir dans mon profil</a>
+                  </div>
                 }
               } @else {
                 <p class="mt-3 text-sm text-text-secondary">Aucune compétence connue détectée automatiquement.</p>
@@ -256,6 +264,12 @@ export class CvComponent implements OnInit {
   readonly selectedSkills = signal<string[]>([]);
   readonly addingSkills = signal(false);
   readonly addedNote = signal<string | null>(null);
+  /** Compétences déjà ajoutées au profil pendant cette session (retour visuel). */
+  readonly addedSkills = signal<string[]>([]);
+  /** Compétences détectées qui restent à ajouter (les ajoutées quittent la liste). */
+  readonly pendingSkills = computed(() =>
+    (this.extract()?.skills ?? []).filter((s) => !this.addedSkills().includes(s)),
+  );
   readonly uploadedLabel = computed(() => {
     const d = this.status()?.uploadedAt;
     return d ? new Date(d).toLocaleDateString('fr-FR') : '';
@@ -360,6 +374,9 @@ export class CvComponent implements OnInit {
     this.addingSkills.set(true);
     try {
       await this.profile.addSkills(skills);
+      // Retour visuel : on marque les compétences ajoutées et on vide la sélection.
+      this.addedSkills.update((a) => [...new Set([...a, ...skills])]);
+      this.selectedSkills.set([]);
       this.addedNote.set(`${skills.length} compétence(s) ajoutée(s) à ton profil.`);
     } catch {
       this.addedNote.set('Ajout impossible. Réessaie.');
