@@ -244,32 +244,88 @@ export class ApplicationsService {
   async dashboard(userId: string): Promise<DashboardSummary> {
     const weekAgo = new Date(Date.now() - 7 * DAY_MS);
     const firstName = await this.users.firstName(userId);
-    const [dueFollowUps, applications, followUpsSent, responses, interviews, weekFollowUps, weekResponses, weekInterviews] =
-      await Promise.all([
-        this.due(userId),
-        this.prisma.application.count({ where: { userId, archivedAt: null } }),
-        this.prisma.followUp.count({
-          where: { application: { userId }, kind: { in: ['relance', 'relance_encore', 'linkedin'] } },
-        }),
-        this.prisma.application.count({ where: { userId, status: 'reponse_recue' } }),
-        this.prisma.application.count({ where: { userId, responseType: 'entretien' } }),
-        this.prisma.followUp.count({
-          where: {
-            application: { userId },
-            kind: { in: ['relance', 'relance_encore', 'linkedin'] },
-            sentAt: { gte: weekAgo },
-          },
-        }),
-        this.prisma.application.count({ where: { userId, status: 'reponse_recue', respondedAt: { gte: weekAgo } } }),
-        this.prisma.application.count({ where: { userId, responseType: 'entretien', respondedAt: { gte: weekAgo } } }),
-      ]);
+    const [
+      dueFollowUps,
+      applications,
+      followUpsSent,
+      responses,
+      interviews,
+      weekFollowUps,
+      weekResponses,
+      weekInterviews,
+      user,
+      profile,
+      automationCount,
+      cvCount,
+    ] = await Promise.all([
+      this.due(userId),
+      this.prisma.application.count({ where: { userId, archivedAt: null } }),
+      this.prisma.followUp.count({
+        where: { application: { userId }, kind: { in: ['relance', 'relance_encore', 'linkedin'] } },
+      }),
+      this.prisma.application.count({ where: { userId, status: 'reponse_recue' } }),
+      this.prisma.application.count({ where: { userId, responseType: 'entretien' } }),
+      this.prisma.followUp.count({
+        where: {
+          application: { userId },
+          kind: { in: ['relance', 'relance_encore', 'linkedin'] },
+          sentAt: { gte: weekAgo },
+        },
+      }),
+      this.prisma.application.count({ where: { userId, status: 'reponse_recue', respondedAt: { gte: weekAgo } } }),
+      this.prisma.application.count({ where: { userId, responseType: 'entretien', respondedAt: { gte: weekAgo } } }),
+      this.prisma.user.findUnique({
+        where: { id: userId },
+        select: { firstSearchAt: true, startChecklistDismissedAt: true },
+      }),
+      this.prisma.profile.findUnique({
+        where: { userId },
+        select: { jobTargets: true, contractTypes: true, locations: true, availableFrom: true },
+      }),
+      this.prisma.automation.count({ where: { userId } }),
+      this.prisma.cvDocument.count({ where: { userId } }),
+    ]);
 
     return {
       firstName,
       dueFollowUps,
       counts: { applications, followUpsSent, responses, interviews },
       week: { followUpsSent: weekFollowUps, responses: weekResponses, interviews: weekInterviews },
+      startChecklist: this.buildStartChecklist(user, profile, { applications, automationCount, cvCount }),
     };
+  }
+
+  /** Marque la carte « Bien démarrer » comme masquée définitivement (§4.9). */
+  async dismissStartChecklist(userId: string): Promise<void> {
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { startChecklistDismissedAt: new Date() },
+    });
+  }
+
+  /** Construit la checklist « Bien démarrer » ; `null` si l'utilisateur l'a masquée. */
+  private buildStartChecklist(
+    user: { firstSearchAt: Date | null; startChecklistDismissedAt: Date | null } | null,
+    profile: { jobTargets: unknown; contractTypes: unknown; locations: unknown; availableFrom: Date | null } | null,
+    counts: { applications: number; automationCount: number; cvCount: number },
+  ): DashboardSummary['startChecklist'] {
+    if (user?.startChecklistDismissedAt) return null;
+
+    const nonEmpty = (v: unknown): boolean => Array.isArray(v) && v.length > 0;
+    const done = {
+      profile:
+        !!profile &&
+        nonEmpty(profile.jobTargets) &&
+        nonEmpty(profile.contractTypes) &&
+        nonEmpty(profile.locations) &&
+        profile.availableFrom !== null,
+      search: !!user?.firstSearchAt,
+      automation: counts.automationCount > 0,
+      application: counts.applications > 0,
+      cv: counts.cvCount > 0,
+    };
+    const completed = Object.values(done).filter(Boolean).length;
+    return { done, completed, total: Object.keys(done).length, allDone: completed === Object.keys(done).length };
   }
 
   /** Vérifie que la candidature appartient bien à l'utilisateur (sinon 404). */

@@ -38,6 +38,11 @@ export class ApplicationsService {
     return firstValueFrom(this.http.get<DashboardSummary>(`${API}/dashboard`));
   }
 
+  /** Masque définitivement la carte « Bien démarrer ». */
+  dismissChecklist(): Promise<void> {
+    return firstValueFrom(this.http.post<void>(`${API}/dashboard/dismiss-checklist`, {}));
+  }
+
   createFromOffer(
     input: CreateFromOfferInput,
   ): Promise<{ application: PublicApplication; duplicate: boolean }> {

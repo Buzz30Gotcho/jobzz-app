@@ -1,15 +1,15 @@
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, effect, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { LucideAngularModule } from 'lucide-angular';
-import type { DashboardSummary, PublicApplication } from '@jobzz/shared';
+import type { DashboardSummary, PublicApplication, StartChecklist } from '@jobzz/shared';
 import { AuthService } from '../../core/auth/auth.service';
 import { ApplicationsService } from '../../core/applications/applications.service';
 import { BuzzDialogComponent } from './relances/buzz-dialog.component';
 import { FoundDialogComponent } from './found-dialog.component';
 
 /**
- * Tableau de bord (CLAUDE.md §4.9) : ligne d'accueil, buzz du jour, chiffres d'activité et récap
- * de la semaine. La carte « Bien démarrer » complète et les automatisations arrivent plus tard.
+ * Tableau de bord (CLAUDE.md §4.9) : ligne d'accueil, carte « Bien démarrer » (nouveaux
+ * utilisateurs), buzz du jour, chiffres d'activité (seulement s'il y en a) et récap de la semaine.
  */
 @Component({
   selector: 'jz-dashboard',
@@ -37,6 +37,60 @@ import { FoundDialogComponent } from './found-dialog.component';
             Pense à confirmer ton adresse email (lien envoyé à l'inscription) pour recevoir le mail des offres.
           </p>
         </div>
+      }
+
+      <!-- Carte « Bien démarrer » (nouveaux utilisateurs, CLAUDE.md §4.9) -->
+      @if (checklist(); as cl) {
+        @if (!checklistHidden()) {
+          <section class="jz-card mt-6">
+            @if (cl.allDone) {
+              <!-- Tout est coché : petit « buzz » puis la carte disparaît. -->
+              <div class="jz-buzz text-center">
+                <p class="text-lg font-semibold">Tu es prêt, à toi de jouer <span class="jz-zz text-accent">bzz</span></p>
+                <p class="mt-1 text-sm text-text-secondary">Tu as fait le tour de l'essentiel. Bonne chasse !</p>
+                <button type="button" class="jz-btn-primary mt-4" (click)="hideChecklist()">C'est parti</button>
+              </div>
+            } @else {
+              <div class="flex items-start justify-between gap-4">
+                <div>
+                  <h2 class="font-semibold">Bien démarrer</h2>
+                  <p class="mt-1 text-sm text-text-secondary">Quelques pas pour tirer le meilleur de Jobzz.</p>
+                </div>
+                <button type="button" class="text-xs text-text-muted hover:text-text" (click)="hideChecklist()">Masquer</button>
+              </div>
+
+              <!-- Barre de progression verte -->
+              <div class="mt-4 flex items-center gap-3">
+                <div class="h-2 flex-1 overflow-hidden rounded-full bg-surface-raised">
+                  <div class="h-full rounded-full bg-accent transition-all" [style.width.%]="(cl.completed / cl.total) * 100"></div>
+                </div>
+                <span class="font-mono text-xs text-text-muted">{{ cl.completed }}/{{ cl.total }}</span>
+              </div>
+
+              <ul class="mt-4 space-y-1">
+                @for (step of steps(cl); track step.key) {
+                  <li>
+                    @if (step.done) {
+                      <div class="flex items-center gap-3 rounded-field px-2 py-2 text-sm text-text-muted">
+                        <lucide-icon name="check-circle-2" [size]="18" class="shrink-0 text-accent" />
+                        <span class="line-through">{{ step.label }}</span>
+                      </div>
+                    } @else {
+                      <a
+                        [routerLink]="step.route"
+                        class="flex items-center gap-3 rounded-field px-2 py-2 text-sm transition-colors hover:bg-surface-raised"
+                      >
+                        <lucide-icon name="circle" [size]="18" class="shrink-0 text-text-muted" />
+                        <span class="text-text">{{ step.label }}</span>
+                        <lucide-icon name="arrow-right" [size]="14" class="ml-auto text-text-muted" />
+                      </a>
+                    }
+                  </li>
+                }
+              </ul>
+            }
+          </section>
+        }
       }
 
       <!-- Tes buzz du jour -->
@@ -100,6 +154,40 @@ import { FoundDialogComponent } from './found-dialog.component';
       <jz-found-dialog (done)="onFound()" (closed)="showFound.set(false)" />
     }
   `,
+  styles: [
+    `
+      .jz-buzz {
+        animation: jz-pop 250ms ease-out;
+      }
+      .jz-zz {
+        display: inline-block;
+        animation: jz-vibrate 420ms ease-in-out;
+      }
+      @keyframes jz-pop {
+        from {
+          transform: scale(0.96);
+          opacity: 0;
+        }
+        to {
+          transform: scale(1);
+          opacity: 1;
+        }
+      }
+      @keyframes jz-vibrate {
+        0%, 100% { transform: rotate(0); }
+        20% { transform: rotate(-12deg); }
+        40% { transform: rotate(10deg); }
+        60% { transform: rotate(-8deg); }
+        80% { transform: rotate(6deg); }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .jz-buzz,
+        .jz-zz {
+          animation: none;
+        }
+      }
+    `,
+  ],
 })
 export class DashboardComponent implements OnInit {
   readonly auth = inject(AuthService);
@@ -108,6 +196,37 @@ export class DashboardComponent implements OnInit {
   readonly summary = signal<DashboardSummary | null>(null);
   readonly buzzing = signal<PublicApplication | null>(null);
   readonly showFound = signal(false);
+
+  /** Carte « Bien démarrer » : états depuis le serveur, masquage local immédiat. */
+  readonly checklist = computed(() => this.summary()?.startChecklist ?? null);
+  readonly checklistHidden = signal(false);
+  private checklistPersisted = false;
+
+  constructor() {
+    // Quand tout est coché, on masque la carte côté serveur une fois (elle ne revient plus).
+    effect(() => {
+      if (this.checklist()?.allDone && !this.checklistPersisted) {
+        this.checklistPersisted = true;
+        void this.applications.dismissChecklist().catch(() => undefined);
+      }
+    });
+  }
+
+  /** Les 5 étapes de la carte, avec leur libellé et l'action associée. */
+  steps(cl: StartChecklist): { key: string; label: string; route: string; done: boolean }[] {
+    return [
+      { key: 'profile', label: 'Complète ton profil', route: '/app/profil', done: cl.done.profile },
+      { key: 'search', label: 'Lance ta première recherche d\'offres', route: '/app/offres', done: cl.done.search },
+      { key: 'automation', label: 'Active une automatisation', route: '/app/offres/automatisations/nouvelle', done: cl.done.automation },
+      { key: 'application', label: 'Note ta première candidature', route: '/app/offres', done: cl.done.application },
+      { key: 'cv', label: 'Dépose ton CV', route: '/app/profil/cv', done: cl.done.cv },
+    ];
+  }
+
+  async hideChecklist(): Promise<void> {
+    this.checklistHidden.set(true);
+    await this.applications.dismissChecklist().catch(() => undefined);
+  }
 
   async ngOnInit(): Promise<void> {
     try {

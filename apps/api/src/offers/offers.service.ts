@@ -44,6 +44,11 @@ export class OffersService {
     const scoring = toScoringProfile(profile);
     const query = this.buildQuery(profile, input);
 
+    // Trace la première recherche (carte « Bien démarrer », §4.9) sans bloquer la réponse.
+    void this.prisma.user
+      .updateMany({ where: { id: subject.id, firstSearchAt: null }, data: { firstSearchAt: new Date() } })
+      .catch(() => undefined);
+
     const { offers: normalized, errors } = await this.sources.search(query);
     const stored = await this.persistOffers(normalized);
 

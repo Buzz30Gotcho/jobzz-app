@@ -41,6 +41,12 @@ export class ApplicationsController {
     return this.applications.dashboard(user.id);
   }
 
+  /** Masque la carte « Bien démarrer » du tableau de bord (§4.9). */
+  @Post('dashboard/dismiss-checklist')
+  dismissChecklist(@CurrentUser() user: RequestUser): Promise<void> {
+    return this.applications.dismissStartChecklist(user.id);
+  }
+
   @Post('from-offer')
   createFromOffer(
     @CurrentUser() user: RequestUser,

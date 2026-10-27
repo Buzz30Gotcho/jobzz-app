@@ -58,6 +58,71 @@ describe('ApplicationsService.createFromOffer', () => {
   });
 });
 
+describe('ApplicationsService.dashboard — carte « Bien démarrer »', () => {
+  function makeDashboardService(opts: {
+    counts: number;
+    user: { firstSearchAt: Date | null; startChecklistDismissedAt: Date | null } | null;
+    profile: Record<string, unknown> | null;
+    automationCount: number;
+    cvCount: number;
+  }) {
+    return makeService({
+      application: { findMany: vi.fn().mockResolvedValue([]), count: vi.fn().mockResolvedValue(opts.counts) },
+      followUp: { count: vi.fn().mockResolvedValue(0) },
+      user: { findUnique: vi.fn().mockResolvedValue(opts.user) },
+      profile: { findUnique: vi.fn().mockResolvedValue(opts.profile) },
+      automation: { count: vi.fn().mockResolvedValue(opts.automationCount) },
+      cvDocument: { count: vi.fn().mockResolvedValue(opts.cvCount) },
+    });
+  }
+
+  it('nouvel utilisateur : toutes les étapes à faire', async () => {
+    const service = makeDashboardService({
+      counts: 0,
+      user: { firstSearchAt: null, startChecklistDismissedAt: null },
+      profile: null,
+      automationCount: 0,
+      cvCount: 0,
+    });
+    const { startChecklist } = await service.dashboard('u1');
+    expect(startChecklist).not.toBeNull();
+    expect(startChecklist!.completed).toBe(0);
+    expect(startChecklist!.allDone).toBe(false);
+    expect(startChecklist!.done).toEqual({
+      profile: false,
+      search: false,
+      automation: false,
+      application: false,
+      cv: false,
+    });
+  });
+
+  it('tout est fait : allDone = true', async () => {
+    const service = makeDashboardService({
+      counts: 1,
+      user: { firstSearchAt: new Date(), startChecklistDismissedAt: null },
+      profile: { jobTargets: [{}], contractTypes: ['cdi'], locations: [{}], availableFrom: new Date() },
+      automationCount: 1,
+      cvCount: 1,
+    });
+    const { startChecklist } = await service.dashboard('u1');
+    expect(startChecklist!.allDone).toBe(true);
+    expect(startChecklist!.completed).toBe(5);
+  });
+
+  it('carte masquée : startChecklist = null', async () => {
+    const service = makeDashboardService({
+      counts: 0,
+      user: { firstSearchAt: null, startChecklistDismissedAt: new Date() },
+      profile: null,
+      automationCount: 0,
+      cvCount: 0,
+    });
+    const { startChecklist } = await service.dashboard('u1');
+    expect(startChecklist).toBeNull();
+  });
+});
+
 describe('ApplicationsService.recordFollowUp', () => {
   it('une relance fait passer la candidature en « relancee » et la sort des buzz', async () => {
     const update = vi.fn().mockResolvedValue(baseRow);

@@ -137,6 +137,28 @@ export interface AutomationPreview {
 }
 
 /** Résumé du tableau de bord (CLAUDE.md §4.9). Ne contient que ce qui existe à cette étape. */
+/**
+ * Carte « Bien démarrer » (CLAUDE.md §4.9) : checklist d'un nouvel utilisateur.
+ * `null` quand l'utilisateur l'a masquée (ou que tout est coché et affiché une fois).
+ */
+export interface StartChecklist {
+  done: {
+    /** Profil rempli (métier, contrat, ville, date de début). */
+    profile: boolean;
+    /** Première recherche d'offres (User.firstSearchAt). */
+    search: boolean;
+    /** Au moins une automatisation. */
+    automation: boolean;
+    /** Au moins une candidature notée. */
+    application: boolean;
+    /** CV déposé. */
+    cv: boolean;
+  };
+  completed: number;
+  total: number;
+  allDone: boolean;
+}
+
 export interface DashboardSummary {
   firstName: string | null;
   /** Candidatures à relancer aujourd'hui (les plus en retard d'abord). */
@@ -153,4 +175,6 @@ export interface DashboardSummary {
     responses: number;
     interviews: number;
   };
+  /** Carte « Bien démarrer » (nouveaux utilisateurs) ; `null` si masquée. */
+  startChecklist: StartChecklist | null;
 }
