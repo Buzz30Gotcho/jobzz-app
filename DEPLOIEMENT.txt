@@ -1,0 +1,369 @@
+═══════════════════════════════════════════════════════════════════════════════
+ JOBZZ — MISE EN LIGNE (phase 2)
+═══════════════════════════════════════════════════════════════════════════════
+
+Ce fichier liste, dans l'ordre, tout ce que tu dois faire pour mettre Jobzz en
+ligne. Le code est déjà prêt : rien n'est à redévelopper. Le paiement Stripe est
+déjà codé et testé en mode test ; il n'y a qu'à le basculer en mode réel.
+
+Règle d'or : seule `DATABASE_URL` change selon l'hébergeur. Le code ne dépend
+d'aucun fournisseur. Tu peux changer d'hébergement sans toucher au code.
+
+Les prix (offres, quotas…) indiqués ici sont « à vérifier au moment de la mise en
+ligne » : ils bougent. Vérifie toujours sur les sites officiels.
+
+
+───────────────────────────────────────────────────────────────────────────────
+ 0. AVANT DE COMMENCER — DÉCISIONS À PRENDRE
+───────────────────────────────────────────────────────────────────────────────
+
+a) Le nom définitif.
+   « Jobzz » est provisoire. À vérifier avant de communiquer :
+     - INPI (marques françaises)  : https://data.inpi.fr
+     - EUIPO (marques UE)         : https://euipo.europa.eu
+   Attention : une application roumaine « JobZZ.ro » existe déjà. Si le nom est
+   pris, choisis-en un autre MAINTENANT : il est défini à un seul endroit
+   (variable `APP_NAME`) et utilisé partout (titre, logo texte, mails).
+
+b) Le statut juridique pour encaisser de l'argent.
+   Stripe verse l'argent sur un compte au nom d'une personne ou d'une structure.
+   Le plus simple pour commencer : la micro-entreprise. À vérifier auprès des
+   sources officielles (urssaf.fr, service-public.fr, impots.gouv.fr). Tant que
+   tu n'encaisses pas de vrai argent (bêta avec Premium offert), ce n'est pas
+   bloquant — mais c'est requis AVANT d'activer le paiement réel.
+
+c) L'hébergement (voir section 1).
+
+
+───────────────────────────────────────────────────────────────────────────────
+ 1. CHOISIR L'HÉBERGEMENT
+───────────────────────────────────────────────────────────────────────────────
+
+Il faut héberger 4 choses : le front (Angular, fichiers statiques), l'API
+(NestJS), PostgreSQL, et les tâches de fond (pg-boss — elles tournent dans le
+même processus que l'API, pas besoin d'un serveur à part). L'IA (Ollama) est
+optionnelle et traitée à part (section 6).
+
+Deux familles. Compare au moment de la mise en ligne (prix à vérifier) :
+
+  FAMILLE A — PLATEFORMES GÉRÉES (le plus simple, un peu plus cher)
+  ────────────────────────────────────────────────────────────────
+  Ex. : Railway ou Render pour l'API + le front ; PostgreSQL géré chez le même
+  hébergeur, ou Supabase / Neon pour la base seule.
+    + Aucune gestion de serveur (pas de SSH, de pare-feu, de mises à jour système).
+    + HTTPS, redémarrage auto, déploiement depuis GitHub inclus.
+    - Un peu plus cher à l'usage. Offres gratuites limitées.
+  Points d'attention :
+    - Projets gratuits parfois MIS EN PAUSE après inactivité (première requête
+      lente, et pg-boss ne tourne pas pendant la pause) → prendre un plan payant
+      dès qu'il y a de vrais utilisateurs.
+    - Avec Supabase : utiliser UNIQUEMENT la base PostgreSQL. Pas Supabase Auth,
+      pas Supabase Storage, aucun accès direct depuis le front. Jobzz a sa propre
+      authentification.
+    - Pour pg-boss ET les migrations Prisma : utiliser la CONNEXION DIRECTE, ou le
+      pooler en mode « session » (pas « transaction »). Le mode transaction casse
+      les notifications LISTEN/NOTIFY dont pg-boss a besoin.
+
+  FAMILLE B — VPS (le moins cher, tout à gérer soi-même)
+  ──────────────────────────────────────────────────────
+  Un seul serveur (IONOS, OVH, Hetzner… données en Europe pour le RGPD) avec
+  Docker Compose : PostgreSQL + API + front + un reverse-proxy HTTPS (Caddy ou
+  Traefik, certificat Let's Encrypt automatique).
+    + Souvent le moins cher ; tout au même endroit.
+    - TOUT est à ta charge : mises à jour système, pare-feu, SSH sécurisé, HTTPS,
+      SAUVEGARDES de la base, redémarrage automatique (restart: always), supervision.
+  À NE PAS FAIRE : hébergement web mutualisé (OVH perso, etc.). Incompatible avec
+  NestJS (processus Node permanent) et pg-boss.
+  Note : un petit VPS ne suffit PAS pour faire tourner Ollama (voir section 6).
+
+  Recommandation pour débuter : Famille A (plateforme gérée) pour la bêta, le
+  temps de se concentrer sur le produit. Passer sur VPS plus tard si le coût
+  devient un sujet.
+
+
+───────────────────────────────────────────────────────────────────────────────
+ 2. COMPTES ET CLÉS DES API D'OFFRES
+───────────────────────────────────────────────────────────────────────────────
+
+a) France Travail (API « Offres d'emploi v2 »)
+   - Créer un compte sur https://francetravail.io, créer une application,
+     souscrire à l'API « Offres d'emploi v2 » (scope api_offresdemploiv2).
+   - Récupérer CLIENT_ID et CLIENT_SECRET (OAuth2 client credentials).
+   → variables FRANCE_TRAVAIL_CLIENT_ID / FRANCE_TRAVAIL_CLIENT_SECRET.
+
+b) La bonne alternance (alternance uniquement)
+   - Compte sur https://api.apprentissage.beta.gouv.fr, demander une clé d'API.
+   → variable LBA_API_KEY.
+
+c) Adzuna : DÉSACTIVÉ par défaut (quotas faibles + licence commerciale). Ne pas
+   activer sans avoir lu sa licence. Variables ADZUNA_APP_ID / ADZUNA_APP_KEY
+   laissées vides.
+
+Puis : passer JOB_SOURCES_MODE de `demo` à `live`.
+Si une clé manque en mode `live`, Jobzz le dit honnêtement à l'utilisateur
+(« La recherche d'offres n'est pas encore configurée ») et n'invente jamais
+d'offres.
+
+
+───────────────────────────────────────────────────────────────────────────────
+ 3. RELECTURE DES CONDITIONS D'UTILISATION DES API (usage public et payant)
+───────────────────────────────────────────────────────────────────────────────
+
+À faire AVANT l'ouverture au public, car l'usage devient public et commercial :
+   - France Travail : citer la source (« via France Travail »), afficher la date
+     de mise à jour, lien vers l'offre d'origine, contenu complet dans le détail.
+     Vérifier que reprendre un RÉSUMÉ de l'offre dans un mail est autorisé.
+   - La bonne alternance : clé secrète, INTERDICTION DE REVENDRE les données.
+   - Adzuna : licence commerciale nécessaire (raison pour laquelle il reste
+     désactivé).
+Jobzz respecte déjà ces règles côté affichage ; l'étape ici est juridique :
+relire et confirmer que l'usage prévu est couvert.
+
+
+───────────────────────────────────────────────────────────────────────────────
+ 4. VARIABLES D'ENVIRONNEMENT DE PRODUCTION
+───────────────────────────────────────────────────────────────────────────────
+
+Partir de `.env.example`. Ne JAMAIS committer les secrets. Les mettre dans le
+gestionnaire de secrets de l'hébergeur (variables d'environnement du service).
+
+Application
+  APP_NAME=Jobzz                      (ou le nom définitif choisi en 0.a)
+  NODE_ENV=production                  ← IMPORTANT (active les gardes de prod)
+  APP_URL=https://app.ton-domaine.fr   (URL publique du front)
+  API_URL=https://api.ton-domaine.fr   (URL publique de l'API)
+  API_PORT=3000                        (ou ce qu'impose l'hébergeur)
+
+Base de données
+  DATABASE_URL=...                     (fournie par l'hébergeur ; connexion
+                                        directe / pooler « session » pour pg-boss)
+
+Secrets de session — GÉNÉRER DES VALEURS LONGUES ET ALÉATOIRES, DIFFÉRENTES :
+  JWT_SECRET=...                       (ex. `openssl rand -base64 48`)
+  REFRESH_TOKEN_SECRET=...             (une autre valeur, idem)
+
+Compte admin (créé au premier démarrage s'il n'existe pas) :
+  ADMIN_EMAIL=...                      (ton vrai email)
+  ADMIN_PASSWORD=...                   (mot de passe fort ; à changer après)
+
+Mail (voir section 5) :
+  SMTP_HOST=...  SMTP_PORT=...  SMTP_USER=...  SMTP_PASS=...  (selon le service)
+  MAIL_FROM="Jobzz <bonjour@ton-domaine.fr>"
+
+Sources d'offres :
+  JOB_SOURCES_MODE=live
+  FRANCE_TRAVAIL_CLIENT_ID=...  FRANCE_TRAVAIL_CLIENT_SECRET=...
+  LBA_API_KEY=...
+  (ADZUNA_* vides)
+
+IA (optionnelle) :
+  AI_ENABLED=true|false                (false si pas d'Ollama : Jobzz marche sans)
+  OLLAMA_URL=...  OLLAMA_MODEL=...
+
+Offres Gratuit / Premium :
+  PLAN_ENFORCEMENT=true                ← en production, les limites s'appliquent
+                                        et les pages Tarifs / Mon abonnement
+                                        apparaissent.
+
+Stripe (voir section 7) — CLÉS DE PRODUCTION :
+  STRIPE_SECRET_KEY=sk_live_...
+  STRIPE_PUBLISHABLE_KEY=pk_live_...
+  STRIPE_WEBHOOK_SECRET=whsec_...      (du webhook de PRODUCTION)
+  STRIPE_PRICE_MONTHLY=price_...
+  STRIPE_PRICE_LAUNCH=price_...
+  STRIPE_PRICE_PASS_3_MONTHS=price_...
+
+Bêta :
+  BETA_INVITE_CODE=...                 (un code pendant la bêta ; VIDE au
+                                        lancement public pour ouvrir l'inscription)
+
+Rappel : si NODE_ENV n'est pas `production` et qu'une clé `sk_live_` est détectée,
+l'application REFUSE de démarrer (garde déjà codée). En prod, mets bien
+NODE_ENV=production.
+
+
+───────────────────────────────────────────────────────────────────────────────
+ 5. ENVOI DES MAILS (domaine, délivrabilité)
+───────────────────────────────────────────────────────────────────────────────
+
+En local, Mailpit capture les mails. En production, il faut un vrai service
+d'envoi (ex. Brevo, Resend, Postmark, Scaleway TEM, Amazon SES… à comparer :
+offre gratuite, prix, délivrabilité). Jobzz passe par Nodemailer (interface
+MailSender) : il suffit de renseigner SMTP_HOST / SMTP_PORT / SMTP_USER /
+SMTP_PASS (et MAIL_FROM) du service choisi.
+
+Configurer le domaine d'envoi pour ne pas finir en spam :
+   - SPF   (enregistrement TXT autorisant le service d'envoi)
+   - DKIM  (clé fournie par le service, à poser en DNS)
+   - DMARC (politique, ex. p=none au début puis p=quarantine)
+   - L'en-tête List-Unsubscribe est déjà envoyé par Jobzz sur le mail des offres.
+Tester l'arrivée réelle dans Gmail, Outlook et Apple Mail (pas seulement
+« envoyé sans erreur »). Outils utiles : mail-tester.com.
+
+
+───────────────────────────────────────────────────────────────────────────────
+ 6. INTELLIGENCE ARTIFICIELLE (OLLAMA) — OPTIONNELLE
+───────────────────────────────────────────────────────────────────────────────
+
+Tout Jobzz fonctionne SANS IA (repli automatique). L'IA améliore : messages
+rédigés, analyse IA du CV, affinage du tri des automatisations, assistant
+« décris ce que tu cherches ». Deux options :
+
+  a) Ne pas activer l'IA au lancement : AI_ENABLED=false. Le plus simple et le
+     moins cher. À activer plus tard.
+  b) Héberger Ollama : nécessite une machine avec assez de RAM / idéalement un GPU
+     (un petit VPS ne suffit pas). Coût réel. OLLAMA_URL pointe vers ce serveur.
+  c) Fournisseur d'IA en ligne : le code a une couche d'abstraction (AiProvider) ;
+     une implémentation en ligne pourra être ajoutée sans toucher au reste.
+     IMPLICATION RGPD : le texte des CV et des offres partirait chez un tiers →
+     il faudra en informer l'utilisateur AVANT l'envoi (le cahier des charges le
+     prévoit déjà) et le mentionner dans la politique de confidentialité.
+
+Recommandation : lancer avec AI_ENABLED=false, activer l'IA quand le produit a
+trouvé son public.
+
+
+───────────────────────────────────────────────────────────────────────────────
+ 7. PASSAGE DU PAIEMENT EN MODE RÉEL (le code est déjà fait et testé)
+───────────────────────────────────────────────────────────────────────────────
+
+Dans le tableau de bord Stripe (https://dashboard.stripe.com) :
+   1. Activer le compte : identité, coordonnées bancaires (c'est là qu'arrive
+      l'argent). Nécessite le statut juridique (section 0.b).
+   2. Passer du mode TEST au mode RÉEL (bascule en haut du dashboard).
+   3. Créer les PRODUITS et PRIX réels (prix à confirmer au moment du lancement) :
+        - Premium mensuel  : 9,99 € / mois (récurrent)        → STRIPE_PRICE_MONTHLY
+        - Pass 3 mois      : 24,99 € paiement unique           → STRIPE_PRICE_PASS_3_MONTHS
+        - Offre de lancement : 6 € / mois (récurrent), 100 places → STRIPE_PRICE_LAUNCH
+      Copier les identifiants `price_...` dans les variables d'environnement.
+   4. Récupérer les clés de PRODUCTION (sk_live_… / pk_live_…).
+   5. Créer le WEBHOOK de production : endpoint = https://api.ton-domaine.fr/api/webhooks/stripe
+      (bien garder le préfixe /api). Événements à écouter :
+        checkout.session.completed, customer.subscription.created,
+        customer.subscription.updated, customer.subscription.deleted,
+        invoice.paid, invoice.payment_failed.
+      Copier le secret du webhook → STRIPE_WEBHOOK_SECRET.
+   6. Régler le PORTAIL CLIENT Stripe (changement de carte, factures,
+      résiliation en un clic) et l'apparence des factures.
+   7. (Optionnel) activer Apple Pay / Google Pay dans Stripe.
+   8. Mettre PLAN_ENFORCEMENT=true.
+   9. TEST GRANDEUR NATURE : faire un VRAI paiement avec une vraie carte, vérifier
+      que le compte passe Premium (après réception du webhook, pas la redirection),
+      que la facture arrive, puis REMBOURSER depuis le dashboard.
+
+Rappel : Jobzz ne voit jamais de numéro de carte (tout se passe sur les pages
+Stripe). Le compte admin reste toujours Premium sans payer.
+
+
+───────────────────────────────────────────────────────────────────────────────
+ 8. NOM DE DOMAINE ET HTTPS
+───────────────────────────────────────────────────────────────────────────────
+
+   - Acheter le nom de domaine (une fois le nom validé en 0.a).
+   - Faire pointer : app.ton-domaine.fr → le front, api.ton-domaine.fr → l'API.
+   - HTTPS obligatoire partout (Let's Encrypt : automatique sur les plateformes
+     gérées ; via Caddy/Traefik sur VPS).
+   - Les cookies de session de Jobzz sont Secure + SameSite=Lax : ils EXIGENT
+     HTTPS pour fonctionner en production.
+
+
+───────────────────────────────────────────────────────────────────────────────
+ 9. SÉCURITÉ
+───────────────────────────────────────────────────────────────────────────────
+
+   - Secrets uniquement en variables d'environnement, jamais dans le code / le git.
+   - CORS restreint au domaine du front (déjà en place ; vérifier APP_URL).
+   - Limites de débit sur connexion / inscription / mails (déjà codées).
+   - En-têtes de sécurité (Helmet) actifs (déjà codés).
+   - SAUVEGARDES AUTOMATIQUES de la base (quotidiennes, testées en restauration) :
+     indispensable. Sur plateforme gérée, activer les backups ; sur VPS, script
+     pg_dump planifié + copie hors-serveur.
+   - DOUBLE AUTHENTIFICATION pour le compte admin (à ajouter avant l'ouverture
+     publique — non codée en v1).
+   - Suivi des erreurs (ex. Sentry) pour être alerté des incidents.
+
+
+───────────────────────────────────────────────────────────────────────────────
+ 10. PAGES LÉGALES ET RGPD
+───────────────────────────────────────────────────────────────────────────────
+
+À rédiger et publier avant l'ouverture publique :
+   - Mentions légales (éditeur, hébergeur, contact).
+   - Politique de confidentialité : quelles données, pourquoi, combien de temps.
+     Mentionner explicitement les EMAILS DE RECRUTEURS saisis par les utilisateurs
+     (données de tiers, utilisées seulement pour leurs propres relances), et, si
+     un fournisseur d'IA en ligne est utilisé, le traitement du texte des CV.
+   - CGU et CGV (ventes Premium).
+   - Durées de conservation (ex. suppression des comptes inactifs depuis 24 mois,
+     après un mail d'avertissement).
+Jobzz fournit déjà l'export des données (ZIP) et la suppression de compte
+(section « Mes données »).
+
+
+───────────────────────────────────────────────────────────────────────────────
+ 11. COUVERTURE DES STAGES
+───────────────────────────────────────────────────────────────────────────────
+
+Les sources officielles (France Travail, La bonne alternance) contiennent peu de
+STAGES. Jobzz le dit déjà honnêtement. Piste pour la suite : chercher des sources
+partenaires ou sous licence dédiées aux stages. À explorer après le lancement.
+
+
+───────────────────────────────────────────────────────────────────────────────
+ 12. BÊTA PRIVÉE (2 À 4 SEMAINES, AVANT LE LANCEMENT PUBLIC)
+───────────────────────────────────────────────────────────────────────────────
+
+   - Mettre en ligne avec les VRAIES sources d'offres (JOB_SOURCES_MODE=live).
+   - Inscription SUR INVITATION : renseigner BETA_INVITE_CODE.
+   - 10 à 30 testeurs (amis, étudiants d'Ynov).
+   - Premium OFFERT aux testeurs : le passer depuis l'espace admin (changement de
+     plan). Le paiement réel n'est PAS encore activé.
+   - Créer un GROUPE DE DISCUSSION (WhatsApp / Discord / Telegram, au choix) À LA
+     MAIN — aucun code dans Jobzz. Mettre le lien dans le mail d'invitation. Règles
+     simples affichées dans le groupe (bienveillance, pas de pub, pas de données
+     personnelles d'autrui).
+   - Recueillir les retours via les tickets (type « idée » / « bug ») et le groupe.
+     Questions à poser : les offres sont-elles pertinentes ? le mail des offres
+     est-il utile ? qu'est-ce qui t'a perdu ?
+   - Suivre dans l'admin : utilisateurs actifs/semaine, automatisations créées,
+     relances envoyées, entretiens, « J'ai trouvé ! ».
+   - CRITÈRES POUR PASSER AU PUBLIC : aucun bug bloquant ; des testeurs qui
+     reviennent chaque semaine ; des offres jugées pertinentes.
+
+
+───────────────────────────────────────────────────────────────────────────────
+ 13. PISTES COMMERCIALES
+───────────────────────────────────────────────────────────────────────────────
+
+   - Partenariats avec des écoles (Premium offert à leurs étudiants). Commencer
+     par Ynov.
+
+
+═══════════════════════════════════════════════════════════════════════════════
+ CHECKLIST FINALE (dans l'ordre conseillé)
+═══════════════════════════════════════════════════════════════════════════════
+
+ [ ]  Nom définitif validé (INPI + EUIPO), domaine acheté
+ [ ]  Statut juridique en place pour encaisser
+ [ ]  Hébergement choisi, front + API + PostgreSQL déployés, HTTPS actif
+ [ ]  NODE_ENV=production, toutes les variables d'environnement renseignées
+ [ ]  Secrets JWT_SECRET / REFRESH_TOKEN_SECRET longs et aléatoires
+ [ ]  Migrations Prisma appliquées sur la base de production
+ [ ]  Clés France Travail + La bonne alternance OK, JOB_SOURCES_MODE=live
+ [ ]  Conditions d'utilisation des API relues (usage public/payant)
+ [ ]  Service d'envoi de mails configuré : SPF, DKIM, DMARC, List-Unsubscribe
+ [ ]  Mails testés sur Gmail / Outlook / Apple Mail (arrivée en boîte de réception)
+ [ ]  Sauvegardes automatiques de la base activées et testées (restauration)
+ [ ]  Double authentification admin en place
+ [ ]  Suivi des erreurs branché
+ [ ]  Pages légales publiées (mentions, confidentialité, CGU/CGV, conservation)
+ [ ]  BÊTA PRIVÉE : BETA_INVITE_CODE défini, testeurs invités, Premium offert,
+      groupe de discussion créé — 2 à 4 semaines
+ [ ]  Critères de sortie de bêta atteints
+ [ ]  Stripe en mode réel : compte activé, produits/prix créés, clés sk_live_/
+      pk_live_, webhook de production, portail client réglé, PLAN_ENFORCEMENT=true
+ [ ]  Un vrai paiement de vérification effectué puis remboursé
+ [ ]  LANCEMENT PUBLIC : vider BETA_INVITE_CODE, activer le paiement réel,
+      remercier les testeurs (ex. offre de lancement 6 € réservée en priorité)
+
+═══════════════════════════════════════════════════════════════════════════════
