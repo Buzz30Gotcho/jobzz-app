@@ -1,5 +1,5 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { LucideAngularModule } from 'lucide-angular';
 import type { PublicApplication } from '@jobzz/shared';
 import { ApplicationsService } from '../../../core/applications/applications.service';
@@ -62,6 +62,7 @@ import { FreeSendDialogComponent } from './free-send-dialog.component';
 })
 export class BuzzerComponent implements OnInit {
   private readonly applications = inject(ApplicationsService);
+  private readonly route = inject(ActivatedRoute);
 
   readonly due = signal<PublicApplication[]>([]);
   readonly loading = signal(true);
@@ -69,6 +70,8 @@ export class BuzzerComponent implements OnInit {
   readonly writing = signal(false);
 
   async ngOnInit(): Promise<void> {
+    // Ouverture directe du dialogue « Écrire à une entreprise » depuis la palette (?ecrire=1).
+    if (this.route.snapshot.queryParamMap.get('ecrire') === '1') this.writing.set(true);
     await this.reload();
   }
 

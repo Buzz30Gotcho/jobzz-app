@@ -5,6 +5,7 @@ import { AuthService } from '../core/auth/auth.service';
 import { ApplicationsService } from '../core/applications/applications.service';
 import { ThemeService } from '../core/theme/theme.service';
 import { LogoComponent } from '../shared/logo.component';
+import { CommandPaletteComponent } from '../shared/command-palette.component';
 
 interface NavEntry {
   path: string;
@@ -16,9 +17,11 @@ interface NavEntry {
 @Component({
   selector: 'jz-app-shell',
   standalone: true,
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, LucideAngularModule, LogoComponent],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, LucideAngularModule, LogoComponent, CommandPaletteComponent],
   template: `
     <div class="flex min-h-full">
+      <jz-command-palette #palette />
+
       <!-- Navigation latérale (ordinateur) : 4 entrées seulement. -->
       <aside class="hidden w-60 shrink-0 flex-col border-r border-border p-4 md:flex">
         <a routerLink="/app" class="mb-8 px-2" aria-label="Accueil Jobzz"><jz-logo /></a>
@@ -49,6 +52,16 @@ interface NavEntry {
           <div class="hidden md:block"></div>
 
           <div class="flex items-center gap-1">
+            <!-- Indice de la palette de commandes (clic ou Ctrl/Cmd+K). -->
+            <button
+              type="button"
+              (click)="palette.open.set(true)"
+              aria-label="Palette de commandes (Ctrl+K)"
+              class="mr-1 hidden items-center gap-2 rounded-field border border-border px-2.5 py-1.5 text-text-muted transition-colors hover:bg-surface-raised hover:text-text md:flex"
+            >
+              <lucide-icon name="search" [size]="14" />
+              <kbd class="font-mono text-[11px]">⌘K</kbd>
+            </button>
             <a
               routerLink="/app/aide"
               aria-label="Aide"
@@ -200,8 +213,18 @@ export class AppShellComponent implements OnInit {
   }
 
   async ngOnInit(): Promise<void> {
+    this.greetInConsole();
     // Alimente le badge « buzz du jour » du menu (ignore les erreurs réseau).
     await this.applications.due().catch(() => []);
+  }
+
+  /** Clin d'œil dev (CLAUDE.md §11) : un petit message caché dans la console. */
+  private greetInConsole(): void {
+    console.log(
+      '%cJobzz%c — tu fouilles dans la console ? On aime les gens curieux.\nAstuce : Ctrl/Cmd + K ouvre la palette de commandes. bzzz',
+      'color:#0AA24E;font-weight:700;font-family:monospace',
+      'color:inherit',
+    );
   }
 
   readonly nav: NavEntry[] = [
