@@ -1,4 +1,4 @@
-import { Component, inject, input, signal } from '@angular/core';
+import { Component, OnInit, inject, input, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import {
@@ -67,7 +67,7 @@ import { errorMessage } from '../auth/error-message';
     }
   `,
 })
-export class AdminTicketDetailComponent {
+export class AdminTicketDetailComponent implements OnInit {
   private readonly api = inject(AdminApiService);
   private readonly fb = inject(FormBuilder);
 
@@ -86,7 +86,9 @@ export class AdminTicketDetailComponent {
     body: ['', [Validators.required, Validators.minLength(1)]],
   });
 
-  constructor() {
+  // Le chargement se fait dans ngOnInit : l'input requis `id` (lié depuis la route) n'est
+  // pas encore disponible dans le constructeur.
+  ngOnInit(): void {
     void this.load();
   }
 

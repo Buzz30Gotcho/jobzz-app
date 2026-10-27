@@ -3,6 +3,31 @@
 Journal des décisions prises en autonomie (date, décision, raison, alternatives écartées),
 conformément au mode de travail du cahier des charges (CLAUDE.md §0).
 
+## 2026-10-27 — Étape 10 (finitions)
+
+### Palette de commandes Ctrl/Cmd+K
+- **Décision** : composant maison `CommandPaletteComponent` (overlay signals, listener global
+  `keydown`), monté dans le shell de l'application. Navigation + 3 actions principales ; l'action
+  « Écrire à une entreprise » passe par le query param `?ecrire=1` lu par le composant Relances.
+- **Alternative écartée** : Angular CDK Overlay/Dialog — surdimensionné ici, le pattern overlay
+  maison existant (`ModalComponent`) suffit et reste cohérent.
+
+### Correctif : détail d'un ticket admin cassé
+- **Bug trouvé par le test E2E** : `AdminTicketDetailComponent` chargeait le ticket dans le
+  **constructeur** en lisant `this.id()` (input *requis* lié depuis la route). L'input n'étant pas
+  encore disponible à la construction, la lecture levait `NG0950` → `ticket()` restait `null` →
+  page bloquée sur « Chargement… ». **Corrigé** en déplaçant le chargement dans `ngOnInit`.
+
+### Tests de bout en bout (Playwright)
+- **Décision** : `@playwright/test` au niveau du workspace, config et specs dans `apps/web`
+  (`playwright.config.ts`, `e2e/`). `workers: 1` (base PostgreSQL partagée), `webServer` qui
+  démarre/réutilise l'API et le front. 4 parcours du cahier des charges (§13).
+- **À vérifier / limite assumée** : le parcours 1 s'arrête à la **création** de la candidature
+  (« J'ai postulé ») ; la relance n'apparaît que 7 jours après et n'est pas testable à chaud.
+  Les flux automatisations utilisent le compte démo (profil complet) pour éviter l'onboarding.
+- **Raison** : un métier *libre* sans code ROME donne un score < 40 % sans compétences →
+  l'accueil guidé du parcours 1 renseigne donc des compétences pour obtenir des offres affichées.
+
 ## 2026-10-22 — Étape 7 (CV) — passe 1
 
 ### pdf-parse épinglé en v1.1.1

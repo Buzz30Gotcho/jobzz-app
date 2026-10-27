@@ -63,9 +63,31 @@ Le **compte admin** est créé au démarrage de l'API depuis `ADMIN_EMAIL` / `AD
 | `pnpm lint` | ESLint sur tout le monorepo |
 | `pnpm typecheck` | Vérification des types |
 | `pnpm test` | Tests unitaires (Vitest) |
+| `pnpm e2e` | Tests de bout en bout (Playwright) — voir ci-dessous |
 | `pnpm seed` | Données de démonstration (bloqué en production) |
 | `pnpm create-admin` | Crée / promeut le compte admin |
 | `pnpm ai:pull` | Télécharge le modèle Ollama (IA, facultative) |
+
+### Tests de bout en bout (Playwright)
+
+Les tests E2E (`apps/web/e2e/`) pilotent la vraie application : inscription → accueil guidé →
+recherche → « J'ai postulé », création d'automatisation (depuis le profil et au formulaire), et
+support (ticket → réponse admin).
+
+```bash
+# Pré-requis une seule fois : navigateur Chromium
+pnpm --filter @jobzz/web exec playwright install chromium
+
+# 1. Services + base + comptes démo
+docker compose up -d
+pnpm --filter @jobzz/api prisma:migrate   # si besoin
+pnpm seed
+
+# 2. Lancer les tests (les serveurs API + web démarrent automatiquement, ou sont réutilisés
+#    s'ils tournent déjà). Mode conseillé dans .env : JOB_SOURCES_MODE=demo, AI_ENABLED=false,
+#    PLAN_ENFORCEMENT=false.
+pnpm e2e
+```
 
 ## Intelligence artificielle (facultative)
 
