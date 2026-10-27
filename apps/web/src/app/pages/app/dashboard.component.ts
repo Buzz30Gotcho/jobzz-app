@@ -80,7 +80,7 @@ import { FoundDialogComponent } from './found-dialog.component';
       <section class="mt-8 grid gap-4 sm:grid-cols-3">
         <a routerLink="/app/offres" class="jz-card hover:border-accent">
           <h2 class="font-semibold">Chercher des offres</h2>
-          <p class="mt-1 text-sm text-text-secondary">Bientôt disponible.</p>
+          <p class="mt-1 text-sm text-text-secondary">Les offres qui te correspondent, triées et expliquées.</p>
         </a>
         <a routerLink="/app/relances" class="jz-card hover:border-accent">
           <h2 class="font-semibold">Mes relances</h2>

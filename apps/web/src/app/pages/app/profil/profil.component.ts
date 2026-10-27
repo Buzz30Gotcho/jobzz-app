@@ -1,6 +1,5 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
-import { RouterLink, RouterLinkActive } from '@angular/router';
 import { LucideAngularModule } from 'lucide-angular';
 import {
   CONTRACT_TYPES,
@@ -45,8 +44,6 @@ const EXPERIENCE_LABELS: Record<ExperienceLevel, string> = {
   standalone: true,
   imports: [
     ReactiveFormsModule,
-    RouterLink,
-    RouterLinkActive,
     LucideAngularModule,
     ProfilTabsComponent,
     MetierFieldComponent,

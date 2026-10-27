@@ -27,7 +27,7 @@ const CONTRACT_LABELS: Record<ContractType, string> = {
  * Accueil guidé en 3 écrans (CLAUDE.md §3), chacun passable :
  * 1. Qu'est-ce que tu cherches ? (prénom facultatif + métier, contrat, ville, date de début) ;
  * 2. Compétences en un clic (suggestions selon le métier) ;
- * 3. Et si les offres venaient à toi ? (les automatisations arrivent à l'étape 6).
+ * 3. Et si les offres venaient à toi ? (présentation des automatisations, activables ensuite).
  */
 @Component({
   selector: 'jz-onboarding',
@@ -91,14 +91,15 @@ const CONTRACT_LABELS: Record<ContractType, string> = {
       } @else {
         <h1 class="text-2xl font-semibold">Et si les offres venaient à toi ?</h1>
         <p class="mt-2 text-text-secondary">
-          Bientôt, Jobzz pourra surveiller les offres pour toi et t'envoyer les meilleures par mail
-          (les <strong>automatisations</strong>). Cette fonctionnalité arrive très vite.
+          Jobzz peut surveiller les offres pour toi et t'envoyer les meilleures par mail : ce sont
+          les <strong>automatisations</strong>. Tu pourras en activer une en un clic depuis ton profil.
         </p>
         <div class="jz-card mt-6 flex items-start gap-3">
           <lucide-icon name="zap" [size]="20" class="mt-0.5 text-accent" />
           <p class="text-sm text-text-secondary">
-            Pour l'instant, ton profil est prêt : tu pourras lancer ta recherche d'offres dès que
-            l'onglet « Offres » sera activé. On te préviendra.
+            Ton profil est prêt. Avec « Terminer », tu arrives sur ton tableau de bord : de là,
+            « Chercher des offres » pour voir celles qui te correspondent, ou « Mes automatisations »
+            pour en activer une.
           </p>
         </div>
       }
