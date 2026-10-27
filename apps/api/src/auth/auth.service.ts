@@ -205,6 +205,37 @@ export class AuthService {
     ]);
   }
 
+  /**
+   * Changement du mot de passe par un utilisateur connecté (CLAUDE.md §4.1) :
+   * on vérifie le mot de passe actuel, on révoque **toutes** les sessions, puis on
+   * ré-émet une session fraîche pour l'appareil courant (il reste connecté ici,
+   * les autres appareils sont déconnectés).
+   */
+  async changePassword(
+    userId: string,
+    currentPassword: string,
+    newPassword: string,
+    userAgent?: string,
+  ): Promise<IssuedTokens> {
+    const user = await this.users.findById(userId);
+    if (!user) {
+      throw new UnauthorizedException('Session invalide.');
+    }
+    const ok = await argon2.verify(user.passwordHash, currentPassword).catch(() => false);
+    if (!ok) {
+      throw new BadRequestException('Mot de passe actuel incorrect.');
+    }
+    const passwordHash = await argon2.hash(newPassword, { type: argon2.argon2id });
+    await this.prisma.$transaction([
+      this.prisma.user.update({ where: { id: userId }, data: { passwordHash } }),
+      this.prisma.refreshToken.updateMany({
+        where: { userId, revokedAt: null },
+        data: { revokedAt: new Date() },
+      }),
+    ]);
+    return this.issueTokens({ ...user, passwordHash }, userAgent);
+  }
+
   // ─────────────────────────── Émission des jetons ───────────────────────────
 
   private async issueTokens(user: User, userAgent?: string): Promise<IssuedTokens> {

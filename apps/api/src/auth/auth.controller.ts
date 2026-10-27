@@ -11,6 +11,7 @@ import {
 import { Throttle } from '@nestjs/throttler';
 import type { Request, Response } from 'express';
 import {
+  changePasswordSchema,
   loginSchema,
   registerSchema,
   requestPasswordResetSchema,
@@ -18,6 +19,7 @@ import {
   resetPasswordSchema,
   verifyEmailSchema,
   type AuthResponse,
+  type ChangePasswordInput,
   type LoginInput,
   type RegisterInput,
   type RequestPasswordResetInput,
@@ -124,6 +126,24 @@ export class AuthController {
   @UsePipes(new ZodValidationPipe(resetPasswordSchema))
   async resetPassword(@Body() body: ResetPasswordInput): Promise<void> {
     await this.auth.resetPassword(body);
+  }
+
+  @Throttle({ default: { limit: 5, ttl: 60_000 } })
+  @Post('change-password')
+  @HttpCode(200)
+  async changePassword(
+    @CurrentUser() current: RequestUser,
+    @Body(new ZodValidationPipe(changePasswordSchema)) body: ChangePasswordInput,
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<AuthResponse> {
+    const issued = await this.auth.changePassword(
+      current.id,
+      body.currentPassword,
+      body.password,
+      req.headers['user-agent'],
+    );
+    return this.finish(res, issued);
   }
 
   @Get('me')

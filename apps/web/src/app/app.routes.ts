@@ -138,8 +138,7 @@ export const routes: Routes = [
       {
         path: 'profil/parametres',
         loadComponent: () =>
-          import('./pages/app/placeholder.component').then((m) => m.PlaceholderComponent),
-        data: { title: 'Paramètres', subtitle: 'Mail des offres, abonnement, mot de passe, Mes données (étape 9).' },
+          import('./pages/app/profil/parametres.component').then((m) => m.ParametresComponent),
       },
       {
         path: 'profil/abonnement',
@@ -153,9 +152,12 @@ export const routes: Routes = [
       },
       {
         path: 'aide',
+        loadComponent: () => import('./pages/app/aide/faq.component').then((m) => m.FaqComponent),
+      },
+      {
+        path: 'aide/demandes',
         loadComponent: () =>
-          import('./pages/app/placeholder.component').then((m) => m.PlaceholderComponent),
-        data: { title: 'Aide', subtitle: 'Questions fréquentes et tes demandes (étape 9).' },
+          import('./pages/app/aide/demandes.component').then((m) => m.DemandesComponent),
       },
     ],
   },
@@ -171,6 +173,28 @@ export const routes: Routes = [
         path: '',
         loadComponent: () =>
           import('./pages/admin/admin-health.component').then((m) => m.AdminHealthComponent),
+      },
+      {
+        path: 'statistiques',
+        loadComponent: () =>
+          import('./pages/admin/admin-stats.component').then((m) => m.AdminStatsComponent),
+      },
+      {
+        path: 'utilisateurs',
+        loadComponent: () =>
+          import('./pages/admin/admin-users.component').then((m) => m.AdminUsersComponent),
+      },
+      {
+        path: 'tickets',
+        loadComponent: () =>
+          import('./pages/admin/admin-tickets.component').then((m) => m.AdminTicketsComponent),
+      },
+      {
+        path: 'tickets/:id',
+        loadComponent: () =>
+          import('./pages/admin/admin-ticket-detail.component').then(
+            (m) => m.AdminTicketDetailComponent,
+          ),
       },
     ],
   },

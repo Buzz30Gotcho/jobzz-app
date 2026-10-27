@@ -19,6 +19,9 @@ import { AutomationsModule } from './automations/automations.module';
 import { BillingModule } from './billing/billing.module';
 import { AdminModule } from './admin/admin.module';
 import { HealthModule } from './health/health.module';
+import { PrivacyModule } from './privacy/privacy.module';
+import { SupportModule } from './support/support.module';
+import { OutcomesModule } from './outcomes/outcomes.module';
 import { JwtAuthGuard } from './auth/jwt-auth.guard';
 import { RolesGuard } from './auth/roles.guard';
 
@@ -53,6 +56,9 @@ import { RolesGuard } from './auth/roles.guard';
     BillingModule,
     AdminModule,
     HealthModule,
+    PrivacyModule,
+    SupportModule,
+    OutcomesModule,
   ],
   providers: [
     // Throttling global, puis authentification, puis rôles.

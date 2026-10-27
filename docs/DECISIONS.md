@@ -319,6 +319,78 @@ conformément au mode de travail du cahier des charges (CLAUDE.md §0).
 - **Raison** : secrets uniquement à la racine (§9) ; supprime l'avertissement de dépréciation
   de la clé `package.json#prisma` (Prisma 7).
 
+### Étape 9 — passe 1 : Paramètres + « Mes données » (RGPD)
+- **Suppression de compte via cascade Prisma** : toutes les relations de `User` ont
+  `onDelete: Cascade`, donc `prisma.user.delete` efface profil, candidatures, relances,
+  automatisations, CV, comparaisons, tickets, abonnements et « J'ai trouvé » d'un coup. La
+  confirmation exige la **ré-saisie exacte de l'email** (comparée normalisée côté serveur).
+  Le mail de confirmation est envoyé après coup et son échec ne remet jamais la suppression en cause.
+- **Changement de mot de passe connecté** (`POST /auth/change-password`) : vérifie le mot de passe
+  actuel, révoque **toutes** les sessions, puis ré-émet une session fraîche pour l'appareil courant
+  (il reste connecté ici, les autres appareils sont déconnectés). Aligne la règle « reset =
+  révocation de toutes les sessions » (§4.1) tout en gardant une bonne UX.
+- **Toggle « mail des offres »** placé dans le module `profile` (`PATCH /profile/offer-mail`) même
+  si le champ `offerMailEnabled` vit sur `User` : la page Paramètres est une sous-page du Profil,
+  et le front met à jour l'utilisateur courant via `AuthService.patchUser`.
+- **Export ZIP avec `archiver@7` + `@types/archiver@6`** : la combinaison `archiver@8`/
+  `@types/archiver@8` livre des types **incomplets** (pas de fonction appelable). Import en
+  `import archiver = require('archiver')` (forme correcte pour un `export =` sans `esModuleInterop`),
+  avec un `eslint-disable` ciblé sur cette seule ligne.
+- **Lien « Mon abonnement »** affiché uniquement quand `PLAN_ENFORCEMENT=true` (lu via
+  `/api/health`), conformément à « pages Tarifs et Mon abonnement masquées en local » (§2).
+
+### Étape 9 — passe 2 : Support (aide, FAQ, tickets)
+- **FAQ dans `content/faq.md`** (éditable), parsée côté serveur (`support/faq.ts`, sections `## `,
+  titre `# ` ignoré), résultat mis en cache en mémoire. Chemin résolu par liste de candidats
+  (cwd + `__dirname`) pour marcher en dev comme en prod. Rendu Markdown léger (gras, liens,
+  paragraphes) côté front, échappé puis lié via `[innerHTML]` (Angular sanitize).
+- **Tickets** : `Ticket.type`/`status` restent des `string` (pas d'enum Prisma) validés par Zod
+  (`schemas/support.ts`). Un message est « de l'équipe » (`fromAdmin`) si son auteur n'est pas le
+  propriétaire du ticket — pas besoin de stocker le rôle.
+- **Pièces jointes** stockées hors dépôt dans `apps/api/storage/support/` (déjà gitignored),
+  **nom aléatoire** (UUID), **type réel vérifié par octets de signature** (`attachment.ts`,
+  PNG/JPEG/WebP), 2 Mo max. Servies par `GET /support/attachments/:messageId` **uniquement** à
+  l'auteur du ticket ou à l'admin.
+- **Mails** : alerte admin à la création d'un ticket (si `ADMIN_EMAIL` défini), notification à
+  l'utilisateur quand l'équipe répond (`addMessageAsAdmin`, branché côté admin à la passe 3). Un
+  échec d'envoi ne bloque jamais l'action.
+- **Détail de ticket inline** (pas de route `/:id`) : le plan du site ne liste que `/app/aide` et
+  `/app/aide/demandes` ; le fil s'ouvre dans un signal `current()` de la page « Mes demandes ».
+
+### Étape 9 — passe 3 : espace admin (santé, stats, utilisateurs, tickets)
+- **Fenêtres temporelles en 7 jours glissants** (pas de semaines ISO) pour « cette semaine » vs
+  « semaine précédente » et pour les 12 barres de `newUsersByWeek` : plus simple, honnête, suffisant.
+- **Calculs purs testés dans `@jobzz/shared/admin-stats`** (`computeTrend`, `averageSubscriptionDurationDays`,
+  `summarizeJobOutcomes`) ; le service admin ne fait que les requêtes de comptage et assemble.
+- **Premium (semaine précédente)** reconstitué depuis `SubscriptionPeriod` actives à J-7 (pas
+  d'historique du champ `plan`) ; `premiumBreakdown` = périodes actives (endedAt null ou futur) par offre.
+- **Santé best-effort et honnête** : IA depuis `AiCallLog` (24 h), exécutions depuis `AutomationRun`
+  (24 h), mails d'offres du jour depuis `OfferDigest`. **File pg-boss** lue par requête brute sur
+  `pgboss.job` (schéma par défaut v9), `null`/« n/d » si illisible. Pas de table de santé des sources
+  en v1 : on affiche le mode + les exécutions, sans inventer de « dernière réussite » par source.
+- **« Lancer les automatisations maintenant »** = `AutomationRunnerService.runAll()` déclenché sans
+  attendre (fire-and-forget, erreurs loguées).
+- **Tickets admin** réutilisent le `SupportService` (méthodes `listAllTickets`/`getAnyTicket`/
+  `updateStatus`/`addMessageAsAdmin`) ; la réponse admin déclenche le mail à l'utilisateur.
+- **Thème admin strictement noir et blanc** : tendances en nuances de gris (jamais vert/rouge),
+  seules les couleurs de sens restent (jaune = à surveiller, rouge = en panne), légende visible.
+- **Détail ticket admin** via route `/admin/tickets/:id` + `input.required()` (déjà
+  `withComponentInputBinding`). Vérifié au démarrage : DI OK, toutes les routes mappées.
+
+### Étape 9 — passe 4 : « J'ai trouvé ! » (JobOutcome)
+- **Enregistrement en une seule fois, à la fin du flux** : le dialogue collecte type de contrat
+  (obligatoire) + entreprise, puis félicitations + pause facultative + question « Jobzz t'a aidé ? »
+  + commentaire, et ne fait **qu'un** `POST /outcomes` au clic « Terminer ». Fermer le dialogue
+  (« Finalement, je cherche encore ») n'enregistre rien → pas d'`update` ni d'orphelin à nettoyer.
+- **Endpoint `cancel`** (`POST /outcomes/:id/cancel` → `cancelledAt`) conservé et testé pour la
+  règle produit « annuler sort des statistiques » ; non appelé par l'UI actuelle (annulation = ne
+  pas créer). `summarizeJobOutcomes` ignore déjà les annulés.
+- **Pause des automatisations** = `updateMany` direct (`active` → `en_pause`) dans le service
+  `outcomes`, sans passer par `AutomationsService` (pas de quota à vérifier pour une mise en pause).
+- **Bouton discret** sur l'accueil (en-tête) et dans Profil → Paramètres ; célébration via une
+  petite animation CSS désactivée sous `prefers-reduced-motion`. Vérifié au boot : routes
+  `/api/outcomes*` mappées, DI OK.
+
 ## À vérifier (hypothèses isolées)
 
 - Noms exacts des paramètres des API France Travail / La bonne alternance : à confronter à la

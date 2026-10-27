@@ -1,8 +1,10 @@
-import { Body, Controller, Get, Post, Put } from '@nestjs/common';
+import { Body, Controller, Get, Patch, Post, Put } from '@nestjs/common';
 import {
   addSkillsSchema,
+  offerMailSchema,
   profileUpdateSchema,
   type AddSkillsInput,
+  type OfferMailInput,
   type ProfileUpdateInput,
   type PublicProfile,
 } from '@jobzz/shared';
@@ -35,5 +37,14 @@ export class ProfileController {
     @Body(new ZodValidationPipe(addSkillsSchema)) body: AddSkillsInput,
   ): Promise<PublicProfile> {
     return this.profile.addSkills(user.id, body.skills);
+  }
+
+  /** Interrupteur « Recevoir le mail des offres » (CLAUDE.md §4.2, dans Paramètres). */
+  @Patch('offer-mail')
+  setOfferMail(
+    @CurrentUser() user: RequestUser,
+    @Body(new ZodValidationPipe(offerMailSchema)) body: OfferMailInput,
+  ): Promise<{ offerMailEnabled: boolean }> {
+    return this.profile.setOfferMail(user.id, body.enabled);
   }
 }

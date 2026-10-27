@@ -30,6 +30,16 @@ export class ProfileService {
     return this.toPublicProfile(profile, hasCv);
   }
 
+  /** Active ou coupe le mail des offres pour l'utilisateur (le champ vit sur `User`). */
+  async setOfferMail(userId: string, enabled: boolean): Promise<{ offerMailEnabled: boolean }> {
+    const user = await this.prisma.user.update({
+      where: { id: userId },
+      data: { offerMailEnabled: enabled },
+      select: { offerMailEnabled: true },
+    });
+    return { offerMailEnabled: user.offerMailEnabled };
+  }
+
   /** Crée ou met à jour le profil (upsert) à partir d'un corps déjà validé par Zod. */
   async update(userId: string, input: ProfileUpdateInput): Promise<PublicProfile> {
     // Champs communs à la création et à la mise à jour (sans `userId`, propre à la création).

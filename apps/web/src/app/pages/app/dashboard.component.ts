@@ -5,6 +5,7 @@ import type { DashboardSummary, PublicApplication } from '@jobzz/shared';
 import { AuthService } from '../../core/auth/auth.service';
 import { ApplicationsService } from '../../core/applications/applications.service';
 import { BuzzDialogComponent } from './relances/buzz-dialog.component';
+import { FoundDialogComponent } from './found-dialog.component';
 
 /**
  * Tableau de bord (CLAUDE.md §4.9) : ligne d'accueil, buzz du jour, chiffres d'activité et récap
@@ -13,11 +14,22 @@ import { BuzzDialogComponent } from './relances/buzz-dialog.component';
 @Component({
   selector: 'jz-dashboard',
   standalone: true,
-  imports: [RouterLink, LucideAngularModule, BuzzDialogComponent],
+  imports: [RouterLink, LucideAngularModule, BuzzDialogComponent, FoundDialogComponent],
   template: `
     <div class="mx-auto w-full max-w-6xl">
-      <h1 class="text-2xl font-semibold">{{ greeting() }} <span aria-hidden="true">👋</span></h1>
-      <p class="mt-2 text-text-secondary">{{ todayLine() }}</p>
+      <div class="flex items-start justify-between gap-4">
+        <div>
+          <h1 class="text-2xl font-semibold">{{ greeting() }} <span aria-hidden="true">👋</span></h1>
+          <p class="mt-2 text-text-secondary">{{ todayLine() }}</p>
+        </div>
+        <button
+          type="button"
+          class="shrink-0 rounded-field border border-border px-3 py-1.5 text-sm text-text-secondary transition-colors hover:border-accent hover:text-text"
+          (click)="showFound.set(true)"
+        >
+          J'ai trouvé !
+        </button>
+      </div>
 
       @if (!auth.user()?.emailVerified) {
         <div class="jz-card mt-6 border-warning/40">
@@ -84,6 +96,9 @@ import { BuzzDialogComponent } from './relances/buzz-dialog.component';
     @if (buzzing(); as app) {
       <jz-buzz-dialog [application]="app" (done)="onBuzzed()" (closed)="buzzing.set(null)" />
     }
+    @if (showFound()) {
+      <jz-found-dialog (done)="onFound()" (closed)="showFound.set(false)" />
+    }
   `,
 })
 export class DashboardComponent implements OnInit {
@@ -92,6 +107,7 @@ export class DashboardComponent implements OnInit {
 
   readonly summary = signal<DashboardSummary | null>(null);
   readonly buzzing = signal<PublicApplication | null>(null);
+  readonly showFound = signal(false);
 
   async ngOnInit(): Promise<void> {
     try {
@@ -144,5 +160,9 @@ export class DashboardComponent implements OnInit {
     this.buzzing.set(null);
     const summary = await this.applications.dashboard();
     this.summary.set(summary);
+  }
+
+  onFound(): void {
+    this.showFound.set(false);
   }
 }

@@ -82,6 +82,21 @@ export class AuthService {
     return firstValueFrom(this.http.post(`${API}/reset-password`, { token, password }));
   }
 
+  /** Change le mot de passe (connecté) : le serveur ré-émet une session fraîche. */
+  async changePassword(currentPassword: string, password: string): Promise<void> {
+    this.apply(
+      await firstValueFrom(
+        this.http.post<AuthResponse>(`${API}/change-password`, { currentPassword, password }),
+      ),
+    );
+  }
+
+  /** Met à jour localement quelques champs de l'utilisateur courant (ex. mail des offres). */
+  patchUser(partial: Partial<PublicUser>): void {
+    const current = this._user();
+    if (current) this._user.set({ ...current, ...partial });
+  }
+
   private apply(res: AuthResponse): void {
     this.accessToken = res.accessToken;
     this._user.set(res.user);

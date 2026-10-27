@@ -74,6 +74,64 @@ export function paymentFailedMail(appName: string, to: string, portalUrl: string
   };
 }
 
+/** Alerte à l'admin quand un utilisateur ouvre un ticket (CLAUDE.md §4.10). */
+export function ticketCreatedAdminMail(
+  appName: string,
+  adminEmail: string,
+  ticketType: string,
+  subject: string,
+  ticketUrl: string,
+): MailMessage {
+  return {
+    to: adminEmail,
+    subject: `${appName} — nouveau ticket (${ticketType}) : ${subject}`,
+    html: layout(
+      appName,
+      'Nouveau ticket',
+      `<p>Un utilisateur vient d'ouvrir un ticket <strong>${ticketType}</strong>.</p>
+       <p style="color:#A3ADA7">Sujet : ${subject}</p>
+       <p style="margin:24px 0">${button(ticketUrl, 'Ouvrir le ticket')}</p>`,
+    ),
+    text: `Nouveau ticket (${ticketType}) : ${subject}\n\nOuvrir : ${ticketUrl}`,
+  };
+}
+
+/** Notification à l'utilisateur quand l'équipe répond à son ticket (CLAUDE.md §4.10). */
+export function ticketRepliedUserMail(
+  appName: string,
+  to: string,
+  subject: string,
+  ticketUrl: string,
+): MailMessage {
+  return {
+    to,
+    subject: `${appName} — réponse à ta demande : ${subject}`,
+    html: layout(
+      appName,
+      'Tu as une réponse',
+      `<p>L'équipe ${appName} a répondu à ta demande « ${subject} ».</p>
+       <p style="margin:24px 0">${button(ticketUrl, 'Voir la réponse')}</p>`,
+    ),
+    text: `L'équipe ${appName} a répondu à ta demande « ${subject} ».\n\nVoir : ${ticketUrl}`,
+  };
+}
+
+/** Confirmation de suppression définitive du compte et des données (CLAUDE.md §4.12). */
+export function accountDeletedMail(appName: string, to: string): MailMessage {
+  return {
+    to,
+    subject: `${appName} — ton compte a été supprimé`,
+    html: layout(
+      appName,
+      'Ton compte a bien été supprimé',
+      `<p>Ton compte ${appName} et toutes tes données ont été supprimés définitivement, comme demandé.</p>
+       <p style="color:#A3ADA7;font-size:13px">Il n'y a rien d'autre à faire. Si tu changes d'avis un jour,
+        tu pourras recréer un compte quand tu veux. Bonne continuation dans ta recherche !</p>`,
+    ),
+    text: `Ton compte ${appName} et toutes tes données ont été supprimés définitivement.\n\nBonne continuation dans ta recherche !`,
+  };
+}
+
 /** Préavis avant la fin d'un Pass 3 mois (sans renouvellement automatique). */
 export function passEndingMail(
   appName: string,

@@ -36,4 +36,12 @@ export class ProfileService {
     this._profile.set(profile);
     return profile;
   }
+
+  /** Active ou coupe le mail des offres. Renvoie l'état réellement enregistré. */
+  async setOfferMail(enabled: boolean): Promise<boolean> {
+    const res = await firstValueFrom(
+      this.http.patch<{ offerMailEnabled: boolean }>(`${API}/offer-mail`, { enabled }),
+    );
+    return res.offerMailEnabled;
+  }
 }
