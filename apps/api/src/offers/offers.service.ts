@@ -63,10 +63,14 @@ export class OffersService {
     const maxAge = SEARCH.maxOfferAgeDays * 24 * 60 * 60 * 1000;
     const allowedContracts =
       (input.contractType as ContractType[] | undefined) ?? profile.contractTypes;
+    // Mot-clé explicitement tapé : recherche libre, qui peut sortir du métier du profil.
+    const keyword = input.motsCles?.trim() ? input.motsCles.trim().toLowerCase() : undefined;
 
     const scored = stored
       .filter((s) => !excluded.has(s.id))
-      .filter((s) => this.passesMandatory(s.offer, scoring, level, allowedContracts, maxAge))
+      .filter((s) => this.passesMandatory(s.offer, scoring, level, allowedContracts, maxAge, keyword))
+      // Recherche libre par mot-clé : on garde tout ce qui contient le mot (le filtre dur est déjà
+      // appliqué), sans plancher de score ; sinon on applique le seuil d'affichage habituel.
       .map((s) => {
         const score = computeOfferScore(
           {
@@ -87,7 +91,7 @@ export class OffersService {
         );
         return { id: s.id, offer: s.offer, score };
       })
-      .filter((s) => s.score.score >= SEARCH.minDisplayedScore)
+      .filter((s) => keyword !== undefined || s.score.score >= SEARCH.minDisplayedScore)
       .sort((a, b) => b.score.score - a.score.score)
       .slice(0, MAX_RESULTS);
 
@@ -172,6 +176,7 @@ export class OffersService {
     level: ExperienceLevel,
     allowedContracts: ContractType[],
     maxAgeMs: number,
+    keyword?: string,
   ): boolean {
     // Fraîcheur (< 30 jours) si la date est connue.
     if (offer.publishedAt) {
@@ -185,6 +190,11 @@ export class OffersService {
     // Filtre junior.
     if (!passesJuniorFilter({ title: offer.title, description: offer.description, experienceRequired: offer.experienceRequired }, level).kept) {
       return false;
+    }
+    // Recherche libre : un mot-clé tapé est un filtre dur et remplace le filtre métier/compétences
+    // du profil (il peut donc sortir du métier visé). Les garde-fous ci-dessus restent appliqués.
+    if (keyword) {
+      return `${offer.title} ${offer.description}`.toLowerCase().includes(keyword);
     }
     // Métier : code ROME (même domaine) ou mots-clés du métier.
     if (scoring.romeCodes.length > 0) {
