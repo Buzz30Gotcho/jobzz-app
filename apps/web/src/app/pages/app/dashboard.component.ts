@@ -17,9 +17,9 @@ import { FoundDialogComponent } from './found-dialog.component';
   imports: [RouterLink, LucideAngularModule, BuzzDialogComponent, FoundDialogComponent],
   template: `
     <div class="mx-auto w-full max-w-6xl">
-      <div class="flex items-start justify-between gap-4">
+      <div class="jz-rise flex items-start justify-between gap-4">
         <div>
-          <h1 class="text-2xl font-semibold">{{ greeting() }} <span aria-hidden="true">👋</span></h1>
+          <h1 class="text-2xl font-semibold">{{ greeting() }} <span class="jz-wave" aria-hidden="true">👋</span></h1>
           <p class="mt-2 text-text-secondary">{{ todayLine() }}</p>
         </div>
         <button
@@ -32,7 +32,7 @@ import { FoundDialogComponent } from './found-dialog.component';
       </div>
 
       @if (!auth.user()?.emailVerified) {
-        <div class="jz-card mt-6 border-warning/40">
+        <div class="jz-card jz-rise mt-6 border-warning/40" style="animation-delay:40ms">
           <p class="text-sm text-text-secondary">
             Pense à confirmer ton adresse email (lien envoyé à l'inscription) pour recevoir le mail des offres.
           </p>
@@ -42,7 +42,7 @@ import { FoundDialogComponent } from './found-dialog.component';
       <!-- Carte « Bien démarrer » (nouveaux utilisateurs, CLAUDE.md §4.9) -->
       @if (checklist(); as cl) {
         @if (!checklistHidden()) {
-          <section class="jz-card mt-6">
+          <section class="jz-card jz-rise mt-6" style="animation-delay:60ms">
             @if (cl.allDone) {
               <!-- Tout est coché : petit « buzz » puis la carte disparaît. -->
               <div class="jz-buzz text-center">
@@ -95,7 +95,7 @@ import { FoundDialogComponent } from './found-dialog.component';
 
       <!-- Tes buzz du jour -->
       @if ((summary()?.dueFollowUps?.length ?? 0) > 0) {
-        <section class="mt-8">
+        <section class="jz-rise mt-8" style="animation-delay:80ms">
           <div class="flex items-center justify-between">
             <h2 class="font-semibold">Tes buzz du jour</h2>
             <a routerLink="/app/relances" class="text-sm text-accent hover:underline">Tout voir</a>
@@ -118,7 +118,7 @@ import { FoundDialogComponent } from './found-dialog.component';
 
       <!-- Chiffres d'activité (seulement s'il y a de l'activité) -->
       @if (hasActivity()) {
-        <section class="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-4">
+        <section class="jz-rise mt-8 grid grid-cols-2 gap-4 sm:grid-cols-4" style="animation-delay:100ms">
           @for (stat of stats(); track stat.label) {
             <div class="jz-card">
               <p class="font-mono text-2xl text-accent">{{ stat.value }}</p>
@@ -130,20 +130,45 @@ import { FoundDialogComponent } from './found-dialog.component';
         <p class="mt-4 text-sm text-text-secondary">{{ weekRecap() }}</p>
       }
 
+      <!-- Astuce du jour (seulement quand l'accueil serait vide) -->
+      @if (showTip()) {
+        <section class="jz-card jz-rise mt-8" style="animation-delay:110ms">
+          <div class="flex items-start gap-3">
+            <span class="grid h-9 w-9 shrink-0 place-items-center rounded-field bg-accent-bg">
+              <lucide-icon name="lightbulb" [size]="18" class="text-accent" />
+            </span>
+            <div class="min-w-0">
+              <h2 class="font-semibold">Astuce du jour</h2>
+              <p class="mt-1 text-sm text-text-secondary">{{ tip().text }}</p>
+              @if (tip().route) {
+                <a [routerLink]="tip().route" class="group mt-3 inline-flex items-center gap-1 text-sm text-accent hover:underline">
+                  {{ tip().cta }}
+                  <lucide-icon name="arrow-right" [size]="14" class="transition-transform group-hover:translate-x-1" />
+                </a>
+              }
+            </div>
+          </div>
+        </section>
+      }
+
       <!-- Accès rapides -->
-      <section class="mt-8 grid gap-4 sm:grid-cols-3">
-        <a routerLink="/app/offres" class="jz-card hover:border-accent">
-          <h2 class="font-semibold">Chercher des offres</h2>
-          <p class="mt-1 text-sm text-text-secondary">Les offres qui te correspondent, triées et expliquées.</p>
-        </a>
-        <a routerLink="/app/relances" class="jz-card hover:border-accent">
-          <h2 class="font-semibold">Mes relances</h2>
-          <p class="mt-1 text-sm text-text-secondary">Buzze les entreprises à relancer.</p>
-        </a>
-        <a routerLink="/app/profil" class="jz-card hover:border-accent">
-          <h2 class="font-semibold">Mon profil</h2>
-          <p class="mt-1 text-sm text-text-secondary">Complète-le pour de meilleures offres.</p>
-        </a>
+      <section class="jz-rise mt-8 grid gap-4 sm:grid-cols-3" style="animation-delay:130ms">
+        @for (q of quickLinks; track q.route) {
+          <a [routerLink]="q.route" class="jz-card jz-quick group hover:border-accent">
+            <div class="flex items-start gap-3">
+              <span class="grid h-9 w-9 shrink-0 place-items-center rounded-field bg-accent-bg transition-colors">
+                <lucide-icon [name]="q.icon" [size]="18" class="text-accent" />
+              </span>
+              <div class="min-w-0">
+                <h2 class="flex items-center gap-1 font-semibold">
+                  {{ q.title }}
+                  <lucide-icon name="arrow-right" [size]="14" class="text-text-muted transition-transform group-hover:translate-x-1" />
+                </h2>
+                <p class="mt-1 text-sm text-text-secondary">{{ q.desc }}</p>
+              </div>
+            </div>
+          </a>
+        }
       </section>
     </div>
 
@@ -162,6 +187,40 @@ import { FoundDialogComponent } from './found-dialog.component';
       .jz-zz {
         display: inline-block;
         animation: jz-vibrate 420ms ease-in-out;
+      }
+      /* Apparition en cascade des sections au chargement. */
+      .jz-rise {
+        animation: jz-rise 300ms ease-out both;
+      }
+      @keyframes jz-rise {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: none;
+        }
+      }
+      /* Le 👋 salue une fois à l'ouverture. */
+      .jz-wave {
+        display: inline-block;
+        transform-origin: 70% 70%;
+        animation: jz-wave 1.6s ease-in-out 0.3s 2;
+      }
+      @keyframes jz-wave {
+        0%, 55%, 100% { transform: rotate(0); }
+        10%, 30% { transform: rotate(14deg); }
+        20% { transform: rotate(-8deg); }
+        40% { transform: rotate(-4deg); }
+        50% { transform: rotate(10deg); }
+      }
+      /* Léger « lift » au survol des accès rapides. */
+      .jz-quick {
+        transition: transform 150ms ease, border-color 150ms ease;
+      }
+      .jz-quick:hover {
+        transform: translateY(-2px);
       }
       @keyframes jz-pop {
         from {
@@ -182,8 +241,13 @@ import { FoundDialogComponent } from './found-dialog.component';
       }
       @media (prefers-reduced-motion: reduce) {
         .jz-buzz,
-        .jz-zz {
+        .jz-zz,
+        .jz-rise,
+        .jz-wave {
           animation: none;
+        }
+        .jz-quick:hover {
+          transform: none;
         }
       }
     `,
@@ -201,6 +265,36 @@ export class DashboardComponent implements OnInit {
   readonly checklist = computed(() => this.summary()?.startChecklist ?? null);
   readonly checklistHidden = signal(false);
   private checklistPersisted = false;
+
+  /** Accès rapides de l'accueil. */
+  readonly quickLinks: { route: string; icon: string; title: string; desc: string }[] = [
+    { route: '/app/offres', icon: 'search', title: 'Chercher des offres', desc: 'Les offres qui te correspondent, triées et expliquées.' },
+    { route: '/app/relances', icon: 'bell', title: 'Mes relances', desc: 'Buzze les entreprises à relancer.' },
+    { route: '/app/profil', icon: 'user', title: 'Mon profil', desc: 'Complète-le pour de meilleures offres.' },
+  ];
+
+  /** Astuces encourageantes, affichées quand l'accueil n'a rien d'autre à montrer. */
+  private readonly tips: { text: string; route?: string; cta?: string }[] = [
+    { text: 'Ajoute 3 compétences à ton profil : les offres qui te correspondent deviennent plus justes.', route: '/app/profil', cta: 'Compléter mon profil' },
+    { text: 'Clique « J\'ai postulé » sur une offre : Jobzz te rappelle de relancer 7 jours plus tard.', route: '/app/offres', cta: 'Voir les offres' },
+    { text: 'Dépose ton CV pour le comparer à une offre en un clic et repérer ce qui manque.', route: '/app/profil/cv', cta: 'Déposer mon CV' },
+    { text: 'Active une automatisation : les nouvelles offres viennent à toi par mail.', route: '/app/offres/automatisations/nouvelle', cta: 'Créer une automatisation' },
+    { text: 'Règle tes alertes sur Indeed et LinkedIn depuis l\'onglet « Mes automatisations ».', route: '/app/offres/automatisations', cta: 'Voir l\'aide aux alertes' },
+  ];
+
+  /** Astuce du jour : change chaque jour, stable dans la journée. */
+  tip(): { text: string; route?: string; cta?: string } {
+    return this.tips[new Date().getDate() % this.tips.length];
+  }
+
+  /** On montre l'astuce seulement quand rien d'autre ne remplit déjà l'accueil. */
+  readonly showTip = computed(() => {
+    if (this.hasActivity()) return false;
+    if ((this.summary()?.dueFollowUps?.length ?? 0) > 0) return false;
+    const cl = this.checklist();
+    const checklistVisible = !!cl && !cl.allDone && !this.checklistHidden();
+    return !checklistVisible;
+  });
 
   constructor() {
     // Quand tout est coché, on masque la carte côté serveur une fois (elle ne revient plus).

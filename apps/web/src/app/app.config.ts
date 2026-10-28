@@ -43,6 +43,7 @@ import {
   AlertTriangle,
   FileSearch,
   WandSparkles,
+  Lightbulb,
 } from 'lucide-angular';
 import { routes } from './app.routes';
 import { authInterceptor } from './core/auth/auth.interceptor';
@@ -90,6 +91,7 @@ export const appConfig: ApplicationConfig = {
         AlertTriangle,
         FileSearch,
         WandSparkles,
+        Lightbulb,
       }),
     ),
     // Applique le thème (clair/sombre) avant le premier rendu.
